@@ -1,5 +1,5 @@
 import unittest
-import dfa
+from src.scanner import dfa
 
 class DFATest(unittest.TestCase):
     def test_run(self):
