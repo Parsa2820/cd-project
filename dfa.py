@@ -10,8 +10,8 @@ class DFA:
     def run(self, word):
         state = self.initial
         for c in word:
-            available_transitions = [transition.next_state for transition in self.transitions if transition.match(state, c)]
-            if len(available_transitions) == 0:
+            available_transitions = [transition for transition in self.transitions if transition.match(state, c)]
+            if len(available_transitions) != 1:
                 return False
             state = available_transitions[0].next_state
         return state in self.finals
