@@ -1,15 +1,19 @@
-from scanner import dfa, scanner
+from scanner import scanner
 
-if __name__ == '__main__':
+
+def get_all_tokens():
     with open("input.txt", "r") as program_file:
         program = program_file.read()
-        program += chr(26)
-        program_scanner = scanner.Scanner(str(program))
-        program_scanner.get_next_token()
+    program += chr(26)
+    program_scanner = scanner.Scanner(str(program))
+    token = program_scanner.get_next_token()
+    token_file = open("tokens.txt", "w")
+    while token:
+        print(token)
+        token_file.write(str(token) + "\n")
+        token = program_scanner.get_next_token()
+    token_file.close()
 
-'''
-if (2 == 2) {
-printf("f");
-}
 
-'''
+if __name__ == '__main__':
+    get_all_tokens()

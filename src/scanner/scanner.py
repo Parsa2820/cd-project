@@ -54,8 +54,6 @@ class Scanner:
     def get_next_token(self):
         pointer = 0
         n = 1
-        while True:
-            pointer, data, n = self.dfa_instance.run(self.program, pointer, n)
-            print(data)
-            if pointer >= len(self.program) - 1:
-                return
+        pointer, data, n = self.dfa_instance.run(self.program, pointer, n)
+        if pointer >= len(self.program) - 1:
+            return

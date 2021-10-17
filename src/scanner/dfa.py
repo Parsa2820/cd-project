@@ -36,7 +36,7 @@ class DFA:
             if state in self.finals:
                 final_state_name = final_states_name[state]
                 if state in final_states_with_look_ahead:
-                    i -= 1;
+                    i -= 1
                     if flag:
                         n -= 1
                 if state in comment_or_whitechar:
