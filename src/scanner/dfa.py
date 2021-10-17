@@ -1,4 +1,5 @@
 import re
+from src.share.token import Token, TokenType
 
 
 def create_token(token_name, lexeme, n):
@@ -7,17 +8,18 @@ def create_token(token_name, lexeme, n):
 
 final_states_name = {2: 'NUMBER', 5: 'SYMBOL', 7: 'SYMBOL', 8: 'SYMBOL', 14: 'WHITECHAR', 11: 'COMMENT', 4: 'ID'}
 
+
 final_states_with_look_ahead = (2, 4, 8)
 
 comment_or_whitechar = (14, 11)
 
 
 class DFA:
-    def __init__(self, states, transitions, initial, finals):
+    def __init__(self, states, transitions, initial, final_function_by_final_state):
         self.states = states
         self.transitions = transitions
         self.initial = initial
-        self.finals = finals
+        self.final_function_by_final_state = final_function_by_final_state
 
     def run(self, program, pointer, n):
         state = self.initial
@@ -41,7 +43,8 @@ class DFA:
                         n -= 1
                 if state in comment_or_whitechar:
                     return i + 1, '', n
-                return i + 1, create_token(final_state_name, program[pointer:i + 1], n), n
+                return i + 1, Token(), n
+                create_token(final_state_name, program[pointer:i + 1], n)
 
 
 class Transition:

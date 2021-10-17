@@ -14,6 +14,8 @@ class Scanner:
         initial = 0
         finals = [2, 4, 5, 8, 14, 11]
         self.dfa_instance = DFA(states, transitions, initial, finals)
+        self.begin_lexeme = 0
+        self.line_number = 1
 
     def __get_number_transitions(self):
         number_transitions = [Transition(0, '[0-9]', 1),
@@ -52,8 +54,6 @@ class Scanner:
         return white_space_transitions
 
     def get_next_token(self):
-        pointer = 0
-        n = 1
-        pointer, data, n = self.dfa_instance.run(self.program, pointer, n)
+        pointer, data, n = self.dfa_instance.run(self.program, self.begin_lexeme, self.line_number)
         if pointer >= len(self.program) - 1:
             return
