@@ -33,7 +33,7 @@ class Scanner:
     def __get_id_keyword_transitions(self):
         id_keyword_transitions = [Transition(0, '[A-Za-z]', 3),
                                   Transition(3, '[A-Za-z0-9]', 3),
-                                  Transition(3, '[^A-za-z0-9]|\x1A', 4)]
+                                  Transition(3, '[^A-Za-z0-9]|\x1A', 4)]
         return id_keyword_transitions
 
     def __get_symbol_transitions(self):
@@ -67,6 +67,8 @@ class Scanner:
         return lambda x: Token(TokenType.KEYWORD, x)
 
     def get_next_token(self):
-        pointer, data, n = self.dfa_instance.run(self.program, self.begin_lexeme, self.line_number)
-        if pointer >= len(self.program) - 1:
-            return
+        if self.begin_lexeme < len(self.program) - 1:
+            self.begin_lexeme, token, self.line_number = self.dfa_instance.run(self.program, self.begin_lexeme,
+                                                                               self.line_number)
+            return token
+        return

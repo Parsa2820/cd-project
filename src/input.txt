@@ -1,4 +1,5 @@
 []
+int p[];
 int b;
 int foo(int d, int e){
     int f;
