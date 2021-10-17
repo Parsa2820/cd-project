@@ -1,5 +1,25 @@
 from .dfa import DFA, Transition
 from share.token import Token, TokenType
+from compiler import symbol_table
+
+
+def keyword_id_function(x):
+    for i in range(1, 9):
+        if symbol_table[i] == x:
+            return Token(TokenType.KEYWORD, x)
+
+    symbol_table_length = len(symbol_table.keys())
+    if symbol_table_length == 8:
+        return extend_symbol_table(symbol_table_length, x)
+    for i in range(9, symbol_table_length + 1):
+        if symbol_table[i] == x:
+            return Token(TokenType.ID, x)
+    return extend_symbol_table(symbol_table_length, x)
+
+
+def extend_symbol_table(symbol_table_length, x):
+    symbol_table.update({symbol_table_length + 1: x})
+    return Token(TokenType.ID, x)
 
 
 class Scanner:
@@ -14,12 +34,12 @@ class Scanner:
         transitions.extend(self.__get_white_space_transitions())
         initial = 0
         final_function_by_final_state = {2: self.__get_final_function(TokenType.NUM),
-                                         4: self.__get_final_function_id_keyword(),
+                                         4: keyword_id_function,
                                          5: self.__get_final_function(TokenType.SYMBOL),
                                          7: self.__get_final_function(TokenType.SYMBOL),
                                          8: self.__get_final_function(TokenType.SYMBOL),
                                          11: self.__get_final_function(TokenType.COMMENT),
-                                         14: self.__get_final_function(TokenType.WHITE_SPACE)}
+                                         14: self.__get_final_function(TokenType.WHITESPACE)}
         self.dfa_instance = DFA(states, transitions, initial, final_function_by_final_state)
         self.begin_lexeme = 0
         self.line_number = 1
@@ -51,7 +71,7 @@ class Scanner:
                                Transition(12, '\*', 13),
                                Transition(13, '\*', 13),
                                Transition(13, '/', 11),
-                               Transition(13, '[^*]', 12),
+                               Transition(13, '[^/*]', 12),
                                Transition(10, '\x1A|\n', 11),
                                Transition(10, '[^\x1A\n]', 10)]
         return comment_transitions

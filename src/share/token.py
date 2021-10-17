@@ -16,4 +16,4 @@ class TokenType(Enum):
     KEYWORD = 3
     SYMBOL = 4
     COMMENT = 5
-    WHITE_SPACE = 6
+    WHITESPACE = 6
