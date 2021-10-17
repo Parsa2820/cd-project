@@ -1,4 +1,5 @@
 from .dfa import DFA, Transition
+from share.token import Token, TokenType
 
 
 class Scanner:
@@ -12,8 +13,14 @@ class Scanner:
         transitions.extend(self.__get_comment_transitions())
         transitions.extend(self.__get_white_space_transitions())
         initial = 0
-        finals = [2, 4, 5, 8, 14, 11]
-        self.dfa_instance = DFA(states, transitions, initial, finals)
+        final_function_by_final_state = {2: self.__get_final_function(TokenType.NUM),
+                                         4: self.__get_final_function_id_keyword(),
+                                         5: self.__get_final_function(TokenType.SYMBOL),
+                                         7: self.__get_final_function(TokenType.SYMBOL),
+                                         8: self.__get_final_function(TokenType.SYMBOL),
+                                         11: self.__get_final_function(TokenType.COMMENT),
+                                         14: self.__get_final_function(TokenType.WHITE_SPACE)}
+        self.dfa_instance = DFA(states, transitions, initial, final_function_by_final_state)
         self.begin_lexeme = 0
         self.line_number = 1
 
@@ -52,6 +59,12 @@ class Scanner:
     def __get_white_space_transitions(self):
         white_space_transitions = [Transition(0, '[\n\t\f\v\r ]', 14)]
         return white_space_transitions
+
+    def __get_final_function(self, token_type):
+        return lambda x: Token(token_type, x)
+
+    def __get_final_function_id_keyword(self):
+        return lambda x: Token(TokenType.KEYWORD, x)
 
     def get_next_token(self):
         pointer, data, n = self.dfa_instance.run(self.program, self.begin_lexeme, self.line_number)

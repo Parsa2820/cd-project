@@ -1,5 +1,5 @@
 import re
-from src.share.token import Token, TokenType
+from share.token import Token, TokenType
 
 
 def create_token(token_name, lexeme, n):
@@ -21,30 +21,25 @@ class DFA:
         self.initial = initial
         self.final_function_by_final_state = final_function_by_final_state
 
-    def run(self, program, pointer, n):
+    def run(self, program, pointer, line_number):
         state = self.initial
-        flag = False
-        for i in range(pointer, len(program)):
-            if program[i] == '\n':
-                n += 1
-                flag = True
-            available_transitions = [transition for transition in self.transitions if
-                                     transition.match(state, program[i])]
-            #print("lsoor" ,program[i], state , available_transitions[0].pattern)
+        for forward in range(pointer, len(program)):
+            available_transitions = [transition for transition in self.transitions
+                                     if transition.match(state, program[forward])]
             if len(available_transitions) != 1:
-                print(program[i], state)
+                # handle error seperate function
+                print(program[forward], state)
                 print(available_transitions)
+            #print("lsoor" ,program[i], state , available_transitions[0].pattern)
             state = available_transitions[0].next_state
-            if state in self.finals:
-                final_state_name = final_states_name[state]
+            if state in self.final_function_by_final_state.keys():
                 if state in final_states_with_look_ahead:
-                    i -= 1
-                    if flag:
-                        n -= 1
-                if state in comment_or_whitechar:
-                    return i + 1, '', n
-                return i + 1, Token(), n
-                create_token(final_state_name, program[pointer:i + 1], n)
+                    forward -= 1
+                lexeme = program[pointer:forward + 1]
+                result = forward + 1, self.final_function_by_final_state[state](lexeme), line_number
+            if program[forward] == '\n':
+                line_number += 1
+        return result
 
 
 class Transition:
