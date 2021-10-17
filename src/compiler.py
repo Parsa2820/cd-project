@@ -26,6 +26,8 @@ def get_all_tokens():
     program = read_file()
     program_scanner = scanner.Scanner(str(program))
     prev_line_number = 1
+    lexical_errors_file = open("lexical_errors.txt", "w")
+    lexical_errors_file.write("There is no lexical error.")
     token_file = open("tokens.txt", "w")
     token_file.write('1.\t')
     token = program_scanner.get_next_token()
@@ -35,8 +37,8 @@ def get_all_tokens():
                 token_file.write(str(token) + ' ')
             else:
                 prev_line_number = program_scanner.line_number
-                token_file.write('\n')
                 token_file.write(str(program_scanner.line_number) + '.\t' + str(token) + ' ')
+
         if symbol_table_length != len(symbol_table):
             symbol_table_file.write(f'{len(scanner.symbol_table)}.\t{token.value}\n')
             symbol_table_length = len(symbol_table)
