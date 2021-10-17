@@ -1,25 +1,6 @@
 from .dfa import DFA, Transition
 from share.token import Token, TokenType
-from compiler import symbol_table
-
-
-def keyword_id_function(x):
-    for i in range(1, 9):
-        if symbol_table[i] == x:
-            return Token(TokenType.KEYWORD, x)
-
-    symbol_table_length = len(symbol_table.keys())
-    if symbol_table_length == 8:
-        return extend_symbol_table(symbol_table_length, x)
-    for i in range(9, symbol_table_length + 1):
-        if symbol_table[i] == x:
-            return Token(TokenType.ID, x)
-    return extend_symbol_table(symbol_table_length, x)
-
-
-def extend_symbol_table(symbol_table_length, x):
-    symbol_table.update({symbol_table_length + 1: x})
-    return Token(TokenType.ID, x)
+from share.symboltable import symbol_table, extend_symbol_table
 
 
 class Scanner:
@@ -34,13 +15,14 @@ class Scanner:
         transitions.extend(self.__get_white_space_transitions())
         initial = 0
         final_function_by_final_state = {2: self.__get_final_function(TokenType.NUM),
-                                         4: keyword_id_function,
+                                         4: self.__get_final_function_id_keyword(),
                                          5: self.__get_final_function(TokenType.SYMBOL),
                                          7: self.__get_final_function(TokenType.SYMBOL),
                                          8: self.__get_final_function(TokenType.SYMBOL),
                                          11: self.__get_final_function(TokenType.COMMENT),
                                          14: self.__get_final_function(TokenType.WHITESPACE)}
-        self.dfa_instance = DFA(states, transitions, initial, final_function_by_final_state)
+        self.dfa_instance = DFA(states, transitions,
+                                initial, final_function_by_final_state)
         self.begin_lexeme = 0
         self.line_number = 1
 
@@ -84,11 +66,24 @@ class Scanner:
         return lambda x: Token(token_type, x)
 
     def __get_final_function_id_keyword(self):
-        return lambda x: Token(TokenType.KEYWORD, x)
+        def keyword_id_function(x):
+            for i in range(1, 9):
+                if symbol_table[i] == x:
+                    return Token(TokenType.KEYWORD, x)
+
+            symbol_table_length = len(symbol_table.keys())
+            if symbol_table_length == 8:
+                return extend_symbol_table(symbol_table_length, x)
+            for i in range(9, symbol_table_length + 1):
+                if symbol_table[i] == x:
+                    return Token(TokenType.ID, x)
+            return extend_symbol_table(symbol_table_length, x)
+        return keyword_id_function
 
     def get_next_token(self):
         if self.begin_lexeme < len(self.program) - 1:
-            self.begin_lexeme, token, self.line_number = self.dfa_instance.run(self.program, self.begin_lexeme,
-                                                                               self.line_number)
+            run_result = self.dfa_instance.run(
+                self.program, self.begin_lexeme, self.line_number)
+            self.begin_lexeme, token, self.line_number = run_result
             return token
         return

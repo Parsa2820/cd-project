@@ -1,58 +1,49 @@
-from scanner import scanner
-from share.token import TokenType
-
-symbol_table = {1: 'if',
-                2: 'else',
-                3: 'void',
-                4: 'int',
-                5: 'repeat',
-                6: 'break',
-                7: 'until',
-                8: 'return'}
+from scanner.scanner import Scanner
+from share.token import Token, TokenType
+from share.symboltable import symbol_table
 
 
-def initialize_symbol_table():
-    symbol_table_file = open("symbol_table.txt", "w")
-    for id in symbol_table.keys():
-        symbol_table_file.write(f'{id}.\t{symbol_table[id]}\n')
-    return symbol_table_file
-
-
-def get_all_tokens():
-    global symbol_table
-    symbol_table = scanner.symbol_table
-    symbol_table_length = 8
-    symbol_table_file = initialize_symbol_table()
-    program = read_file()
-    program_scanner = scanner.Scanner(str(program))
-    prev_line_number = 1
-    lexical_errors_file = open("lexical_errors.txt", "w")
-    lexical_errors_file.write("There is no lexical error.")
-    token_file = open("tokens.txt", "w")
-    token_file.write('1.\t')
-    token = program_scanner.get_next_token()
-    while token:
-        if not (token.type == TokenType.WHITESPACE or token.type == TokenType.COMMENT):
-            if prev_line_number == program_scanner.line_number:
-                token_file.write(str(token) + ' ')
-            else:
-                prev_line_number = program_scanner.line_number
-                token_file.write(str(program_scanner.line_number) + '.\t' + str(token) + ' ')
-
-        if symbol_table_length != len(symbol_table):
-            symbol_table_file.write(f'{len(scanner.symbol_table)}.\t{token.value}\n')
-            symbol_table_length = len(symbol_table)
-        token = program_scanner.get_next_token()
-
-    token_file.close()
-
-
-def read_file():
+def read_all_file():
     with open("input.txt", "r") as program_file:
         program = program_file.read()
     program += chr(26)
     return program
 
 
+def write_symbol_table_file():
+    with open("symbol_table.txt", "w") as symbol_table_file:
+        for id in symbol_table.keys():
+            symbol_table_file.write(f'{id}.\t{symbol_table[id]}\n')
+
+
+def write_lexical_errors_file():
+    with open("lexical_errors.txt", "w") as lexical_errors_file:
+        lexical_errors_file.write("There is no lexical error.")
+
+
+def write_tokens_file(scanner):
+    prev_line_number = 0
+    token_file = open("tokens.txt", "w")
+    token = scanner.get_next_token()
+    while token:
+        if token.type == TokenType.WHITESPACE or token.type == TokenType.COMMENT:
+            token = scanner.get_next_token()
+            continue
+        if prev_line_number != scanner.line_number:
+            prev_line_number = scanner.line_number
+            token_file.write(f'\n{prev_line_number}.\t')
+        token_file.write(f'{str(token)} ')
+        token = scanner.get_next_token()
+    token_file.close()
+
+
+def run_parser():
+    program = read_all_file()
+    program_scanner = Scanner(program)
+    write_tokens_file(program_scanner)
+    write_symbol_table_file()
+    write_lexical_errors_file()
+
+
 if __name__ == '__main__':
-    get_all_tokens()
+    run_parser()
