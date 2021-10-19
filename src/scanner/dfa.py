@@ -10,15 +10,16 @@ class DFA:
         self.final_states_with_lookahead = final_states_with_lookahead
         self.valid_character_pattern = valid_character_pattern
 
-    def __validate_character(self, char):
+    def __validate_character(self, char, forward):
+        # TODO: Bypass check for comments
         if not re.match(self.valid_character_pattern, char):
-            raise BadCharacterError(char)
+            raise BadCharacterError(char, forward)
 
     def run(self, program, lexeme_begin):
         state = self.initial
         for forward in range(lexeme_begin, len(program)):
             char = program[forward]
-            self.__validate_character(char)
+            self.__validate_character(char, forward)
             available_transitions = [t for t in self.transitions if t.match(state, char)]
             if len(available_transitions) != 1:
                 raise NoAvailableTransitionError(available_transitions, state, char, forward)

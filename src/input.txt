@@ -1,28 +1,17 @@
-int f(int n){
-return n * n * n;
-}
-
-void main(void){
-int a; int b; int c;
-int num; int cha; int t;
-int ans;
-a = 98;
-b = 2;
-c = 6;
-num = 1;
-cha = 1;
-t = 0;
-
-repeat {
-	t = t + 1;
-	num = num + cha;
-	if (t < 5) {
-		cha = cha * b;
-	} else {
-		cha = cha + c;
-	}
-} until (num < a)
-
-ans = f(t);
-break;
+void main ( void ) {
+    int a = 0;
+    // comment1
+    a = 2 + 2;
+    a = a - 3;
+    cde = a;
+    if (b /* comment2 */ == 3d) {
+        a = 3;
+        cd!e = 7;
+    }
+    else */
+    {
+        b = a < cde;
+        {cde = @2;
+    }}
+    return;/* comment 3
 }

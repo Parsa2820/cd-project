@@ -1,1 +1,9 @@
-There is no lexical error.
+3.	(/, Invalid character)
+3.	(/, Invalid character)
+7.	(/, Invalid character)
+7.	(*/, Unmatched comment)
+9.	(cd!, Invalid character)
+11.	(*/, Unmatched comment)
+14.	(@, Invalid character)
+16.	(/, Invalid character)
+17.	(, Invalid number)

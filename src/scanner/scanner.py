@@ -1,4 +1,4 @@
-from .dfa import DFA, BadCharacterError, Transition, NoAvailableTransitionError, InvalidCharacterError
+from .dfa import DFA, BadCharacterError, Transition, NoAvailableTransitionError, BadCharacterError
 from share.token import Token, TokenType
 from share.symboltable import symbol_table, extend_symbol_table
 
@@ -22,9 +22,11 @@ class Scanner:
                                          11: self.__get_final_function(TokenType.COMMENT),
                                          14: self.__get_final_function(TokenType.WHITESPACE)}
         final_states_with_lookahead = [2, 4, 8]
+        valid_character_pattern = '[A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
         self.dfa_instance = DFA(states, transitions,
                                 initial, final_function_by_final_state,
-                                final_states_with_lookahead)
+                                final_states_with_lookahead, valid_character_pattern
+                                )
         self.lexeme_begin = 0
         self.line_number = 1
 
@@ -80,25 +82,27 @@ class Scanner:
                 if symbol_table[i] == x:
                     return Token(TokenType.ID, x)
             return extend_symbol_table(symbol_table_length, x)
-
         return keyword_id_function
 
     def __handle_errors(self, error: NoAvailableTransitionError):
         if error.state in [12, 13]:
-            error_lexeme = self.program[self.lexeme_begin:error.forward]
+            error_lexeme = self.__get_error_lexeme(error.forward)
             raise UnclosedCommentError(self.line_number, error_lexeme)
         else:
             self.__handle_invalid_number_error(error)
 
     def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
-        error_lexeme = self.program[self.lexeme_begin:error.forward]
+        error_lexeme = self.__get_error_lexeme(error.forward)
         self.lexeme_begin = error.forward + 1
         raise InvalidNumberError(self.line_number, error_lexeme)
 
     def __handle_invalid_input(self, error: BadCharacterError):
-        error_lexeme = self.program[self.lexeme_begin:error.forward]
+        error_lexeme = self.__get_error_lexeme(error.forward)
         self.lexeme_begin = error.forward + 1
         raise InvalidCharacterError(self.line_number, error_lexeme)
+
+    def __get_error_lexeme(self, forward):
+        return self.program[self.lexeme_begin:forward + 1]
 
     def __validate_token(self, token):
         self.__check_unmatched_comment_error(token)
@@ -113,15 +117,17 @@ class Scanner:
             return None
         try:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)
+            if token is None:
+                return None
             self.lexeme_begin += len(token.value)
             self.__validate_token(token)
             if token.type == TokenType.WHITESPACE and token.value == '\n':
                 self.line_number += 1
             return token
-        except InvalidCharacterError as e:
-            self.__handle_errors(e)
-        except NoAvailableTransitionError as e:
+        except BadCharacterError as e:
             self.__handle_invalid_input(e)
+        except NoAvailableTransitionError as e:
+            self.__handle_errors(e)
 
 
 class ScannerError(Exception):
@@ -129,6 +135,9 @@ class ScannerError(Exception):
         self.line_number = line_number
         self.error_lexeme = error_lexeme
         self.error_type = error_type
+
+    def __str__(self):
+        return f'{self.line_number}.\t({self.error_lexeme}, {self.error_type})'
 
 
 class UnmatchedCommentError(ScannerError):
