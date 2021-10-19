@@ -1,4 +1,4 @@
-from .dfa import DFA, Transition
+from .dfa import DFA, BadCharacterError, Transition, NoAvailableTransitionError, InvalidCharacterError
 from share.token import Token, TokenType
 from share.symboltable import symbol_table, extend_symbol_table
 
@@ -25,7 +25,7 @@ class Scanner:
         self.dfa_instance = DFA(states, transitions,
                                 initial, final_function_by_final_state,
                                 final_states_with_lookahead)
-        self.begin_lexeme = 0
+        self.lexeme_begin = 0
         self.line_number = 1
 
     def __get_number_transitions(self):
@@ -51,11 +51,11 @@ class Scanner:
         comment_transitions = [Transition(0, '/', 9),
                                Transition(9, '/', 10),
                                Transition(9, '\*', 12),
-                               Transition(12, '[^*]', 12),
+                               Transition(12, '[^*\x1A]', 12),
                                Transition(12, '\*', 13),
                                Transition(13, '\*', 13),
                                Transition(13, '/', 11),
-                               Transition(13, '[^/*]', 12),
+                               Transition(13, '[^/*\x1A]', 12),
                                Transition(10, '\x1A|\n', 11),
                                Transition(10, '[^\x1A\n]', 10)]
         return comment_transitions
@@ -82,12 +82,70 @@ class Scanner:
             return extend_symbol_table(symbol_table_length, x)
         return keyword_id_function
 
+    def __handle_errors(self, error: NoAvailableTransitionError):
+        if error.state in [12, 13]:
+            error_lexeme = self.program[self.lexeme_begin:error.forward]
+            raise UnclosedCommentError(self.line_number, error_lexeme)
+        else:
+            self.__handle_invalid_number_error(error)
+
+    def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
+        error_lexeme = self.program[self.lexeme_begin:error.forward]
+        self.lexeme_begin = error.forward + 1
+        raise InvalidNumberError(self.line_number, error_lexeme)
+
+    def __handle_invalid_input(self, error: BadCharacterError):
+        error_lexeme = self.program[self.lexeme_begin:error.forward]
+        self.lexeme_begin = error.forward + 1
+        raise InvalidCharacterError(self.line_number, error_lexeme)
+
+    def __validate_token(self, token):
+        self.__check_unmatched_comment_error(token)
+
+    def __check_unmatched_comment_error(self, token):
+        if token.type == TokenType.SYMBOL and token.value == '*' and self.program[self.lexeme_begin] == '/':
+            self.lexeme_begin += 1
+            raise UnmatchedCommentError(self.line_number)
+
     def get_next_token(self):
-        if self.begin_lexeme < len(self.program) - 1:
-            run_result = self.dfa_instance.run(self.program, self.begin_lexeme)
-            token = run_result
-            self.begin_lexeme += len(token.value)
+        if self.lexeme_begin > len(self.program):
+            return None
+        try:
+            token = self.dfa_instance.run(self.program, self.lexeme_begin)
+            self.lexeme_begin += len(token.value)
+            self.__validate_token(token)
             if token.type == TokenType.WHITESPACE and token.value == '\n':
                 self.line_number += 1
             return token
-        return None
+        except InvalidCharacterError as e:
+            self.__handle_errors(e)
+        except NoAvailableTransitionError as e:
+            self.__handle_invalid_input(e)
+
+
+class ScannerError(Exception):
+    def __init__(self, line_number, error_lexeme, error_type):
+        self.line_number = line_number
+        self.error_lexeme = error_lexeme
+        self.error_type = error_type
+
+
+class UnmatchedCommentError(ScannerError):
+    def __init__(self, line_number):
+        super().__init__(line_number, '*/', 'Unmatched comment')
+
+
+class UnclosedCommentError(ScannerError):
+    def __init__(self, line_number, error_lexeme):
+        short_lexeme = f'{error_lexeme[:7]}{"..." if len(error_lexeme) > 7 else ""}'
+        super().__init__(line_number, short_lexeme, 'Unclosed comment')
+
+
+class InvalidCharacterError(ScannerError):
+    def __init__(self, line_number, error_lexeme):
+        super().__init__(line_number, error_lexeme, 'Invalid character')
+
+
+class InvalidNumberError(ScannerError):
+    def __init__(self, line_number, error_lexeme):
+        super().__init__(line_number, error_lexeme, 'Invalid number')
