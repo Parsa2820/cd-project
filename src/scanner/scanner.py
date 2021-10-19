@@ -22,7 +22,7 @@ class Scanner:
                                          11: self.__get_final_function(TokenType.COMMENT),
                                          14: self.__get_final_function(TokenType.WHITESPACE)}
         final_states_with_lookahead = [2, 4, 8]
-        valid_character_pattern = '[A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
+        valid_character_pattern = '[\/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
         self.dfa_instance = DFA(states, transitions,
                                 initial, final_function_by_final_state,
                                 final_states_with_lookahead, valid_character_pattern
@@ -33,7 +33,7 @@ class Scanner:
     def __get_number_transitions(self):
         number_transitions = [Transition(0, '[0-9]', 1),
                               Transition(1, '[0-9]', 1),
-                              Transition(1, '[^0-9]|\x1A', 2)]
+                              Transition(1, '[^0-9A-Za-z]|\x1A', 2)]
         return number_transitions
 
     def __get_id_keyword_transitions(self):
@@ -82,14 +82,17 @@ class Scanner:
                 if symbol_table[i] == x:
                     return Token(TokenType.ID, x)
             return extend_symbol_table(symbol_table_length, x)
+
         return keyword_id_function
 
     def __handle_errors(self, error: NoAvailableTransitionError):
         if error.state in [12, 13]:
             error_lexeme = self.__get_error_lexeme(error.forward)
+            self.lexeme_begin = error.forward + 1
             raise UnclosedCommentError(self.line_number, error_lexeme)
-        else:
+        elif error.state == 1:
             self.__handle_invalid_number_error(error)
+        else: return None
 
     def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
         error_lexeme = self.__get_error_lexeme(error.forward)
@@ -119,10 +122,10 @@ class Scanner:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)
             if token is None:
                 return None
+            print(token.type)
+            self.line_number += self.program[self.lexeme_begin:self.lexeme_begin + len(token.value)].count('\n')
             self.lexeme_begin += len(token.value)
             self.__validate_token(token)
-            if token.type == TokenType.WHITESPACE and token.value == '\n':
-                self.line_number += 1
             return token
         except BadCharacterError as e:
             self.__handle_invalid_input(e)
@@ -153,7 +156,7 @@ class UnclosedCommentError(ScannerError):
 
 class InvalidCharacterError(ScannerError):
     def __init__(self, line_number, error_lexeme):
-        super().__init__(line_number, error_lexeme, 'Invalid character')
+        super().__init__(line_number, error_lexeme, 'Invalid input')
 
 
 class InvalidNumberError(ScannerError):
