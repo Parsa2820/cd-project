@@ -1,5 +1,5 @@
 from scanner.scanner import Scanner
-from share.token import Token, TokenType
+from share.token import TokenType
 from share.symboltable import symbol_table
 
 
