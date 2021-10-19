@@ -78,6 +78,7 @@ class Scanner:
                 if symbol_table[i] == x:
                     return Token(TokenType.ID, x)
             return extend_symbol_table(symbol_table_length, x)
+
         return keyword_id_function
 
     def get_next_token(self):

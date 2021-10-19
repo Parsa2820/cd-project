@@ -25,13 +25,18 @@ def write_tokens_file(scanner):
     prev_line_number = 0
     token_file = open("tokens.txt", "w")
     token = scanner.get_next_token()
+    first_line_flag = True
     while token:
         if token.type == TokenType.WHITESPACE or token.type == TokenType.COMMENT:
             token = scanner.get_next_token()
             continue
         if prev_line_number != scanner.line_number:
             prev_line_number = scanner.line_number
-            token_file.write(f'\n{prev_line_number}.\t')
+            if  first_line_flag:
+                token_file.write(f'{prev_line_number}.\t')
+            else:
+                token_file.write(f'\n{prev_line_number}.\t')
+            first_line_flag = False
         token_file.write(f'{str(token)} ')
         token = scanner.get_next_token()
     token_file.close()
