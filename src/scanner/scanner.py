@@ -21,8 +21,10 @@ class Scanner:
                                          8: self.__get_final_function(TokenType.SYMBOL),
                                          11: self.__get_final_function(TokenType.COMMENT),
                                          14: self.__get_final_function(TokenType.WHITESPACE)}
+        final_states_with_lookahead = [2, 4, 8]
         self.dfa_instance = DFA(states, transitions,
-                                initial, final_function_by_final_state)
+                                initial, final_function_by_final_state,
+                                final_states_with_lookahead)
         self.begin_lexeme = 0
         self.line_number = 1
 
@@ -82,8 +84,9 @@ class Scanner:
 
     def get_next_token(self):
         if self.begin_lexeme < len(self.program) - 1:
-            run_result = self.dfa_instance.run(
-                self.program, self.begin_lexeme, self.line_number)
-            self.begin_lexeme, token, self.line_number = run_result
+            run_result = self.dfa_instance.run(self.program, self.begin_lexeme)
+            self.begin_lexeme, token = run_result
+            if token.type == TokenType.WHITESPACE and token.value == '\n':
+                self.line_number += 1
             return token
         return

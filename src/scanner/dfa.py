@@ -6,42 +6,29 @@ def create_token(token_name, lexeme, n):
     return str(n) + '\t' + '(' + token_name + ',' + str(lexeme) + ')'
 
 
-final_states_name = {2: 'NUMBER', 5: 'SYMBOL', 7: 'SYMBOL', 8: 'SYMBOL', 14: 'WHITECHAR', 11: 'COMMENT', 4: 'ID'}
-
-final_states_with_look_ahead = (2, 4, 8)
-
-comment_or_whitechar = (14, 11)
-
-
 class DFA:
-    def __init__(self, states, transitions, initial, final_function_by_final_state):
+    def __init__(self, states, transitions, initial, final_function_by_final_state, final_states_with_lookahead):
         self.states = states
         self.transitions = transitions
         self.initial = initial
         self.final_function_by_final_state = final_function_by_final_state
+        self.final_states_with_lookahead = final_states_with_lookahead
 
-    def run(self, program, pointer, line_number):
+    def run(self, program, lexeme_begin):
         state = self.initial
-        for forward in range(pointer, len(program)):
-            if program[forward] == '\n':
-                line_number += 1
-            available_transitions = [transition for transition in self.transitions
-                                     if transition.match(state, program[forward])]
+        for forward in range(lexeme_begin, len(program)):
+            char = program[forward]
+            available_transitions = [
+                t for t in self.transitions if t.match(state, char)]
             if len(available_transitions) != 1:
-                # handle error seperate function
-                print(state)
-                print('saa', program[forward], state)
-                print((available_transitions[0].pattern , available_transitions[1].pattern))
+                raise NoAvailableTransitionError(
+                    available_transitions, state, char)
             state = available_transitions[0].next_state
             if state in self.final_function_by_final_state.keys():
-                # print('sa')
-                if state in final_states_with_look_ahead:
+                if state in self.final_states_with_lookahead:
                     forward -= 1
-                    if program[forward] == '\n':
-                        line_number -= 1
-                lexeme = program[pointer:forward + 1]
-                result = forward + 1, self.final_function_by_final_state[state](lexeme), line_number
-                return result
+                lexeme = program[lexeme_begin:forward + 1]
+                return forward + 1, self.final_function_by_final_state[state](lexeme)
 
 
 class Transition:
@@ -52,3 +39,15 @@ class Transition:
 
     def match(self, state, c):
         return re.match(self.pattern, c) and state == self.state
+
+
+class NoAvailableTransitionError(Exception):
+    def __init__(self, transitions, state, c):
+        self.transitions = transitions
+        self.state = state
+        self.c = c
+
+    def __str__(self):
+        return (f'There are {len(self.transitions)} transitions '
+                f'in the state "{self.state}" and '
+                f'for the character "{self.c}".')
