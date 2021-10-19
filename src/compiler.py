@@ -1,7 +1,7 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
 from share.symboltable import symbol_table
-from scanner.dfa import NoAvailableTransitionError
+
 
 def read_all_file():
     with open("input.txt", "r") as program_file:

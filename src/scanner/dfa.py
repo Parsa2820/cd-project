@@ -1,9 +1,4 @@
 import re
-from share.token import Token, TokenType
-
-
-def create_token(token_name, lexeme, n):
-    return str(n) + '\t' + '(' + token_name + ',' + str(lexeme) + ')'
 
 
 class DFA:
@@ -18,17 +13,15 @@ class DFA:
         state = self.initial
         for forward in range(lexeme_begin, len(program)):
             char = program[forward]
-            available_transitions = [
-                t for t in self.transitions if t.match(state, char)]
+            available_transitions = [t for t in self.transitions if t.match(state, char)]
             if len(available_transitions) != 1:
-                raise NoAvailableTransitionError(
-                    available_transitions, state, char)
+                raise NoAvailableTransitionError(available_transitions, state, char)
             state = available_transitions[0].next_state
             if state in self.final_function_by_final_state.keys():
                 if state in self.final_states_with_lookahead:
                     forward -= 1
                 lexeme = program[lexeme_begin:forward + 1]
-                return forward + 1, self.final_function_by_final_state[state](lexeme)
+                return self.final_function_by_final_state[state](lexeme)
 
 
 class Transition:

@@ -85,8 +85,9 @@ class Scanner:
     def get_next_token(self):
         if self.begin_lexeme < len(self.program) - 1:
             run_result = self.dfa_instance.run(self.program, self.begin_lexeme)
-            self.begin_lexeme, token = run_result
+            token = run_result
+            self.begin_lexeme += len(token.value)
             if token.type == TokenType.WHITESPACE and token.value == '\n':
                 self.line_number += 1
             return token
-        return
+        return None
