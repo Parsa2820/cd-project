@@ -20,22 +20,28 @@ def write_lexical_error_file(lexical_errors_file, lexical_error):
     lexical_errors_file.write(f'{lexical_error}\n')
 
 
-def get_valid_token(lexical_errors_file, scanner):
+def get_valid_token(lexical_errors_file, scanner, prev_line_number):
     token = False
     while not token and scanner.lexeme_begin != len(scanner.program):
         try:
             token = scanner.get_next_token()
         except ScannerError as error:
-            write_lexical_error_file(lexical_errors_file, error)
-    return token
+            if prev_line_number != error.line_number:
+                write_lexical_error_file(lexical_errors_file, error)
+            else:
+                write_lexical_error_file(lexical_errors_file, f'( {error.error_lexeme})')
+
+            prev_line_number = error.line_number
+    return token, prev_line_number
 
 
 def write_tokens_file(scanner):
     prev_line_number = 0
+    prev_error_line_number = 0
     token_file = open("tokens.txt", "w")
     lexical_errors_file = open("lexical_errors.txt", "w")
     lexical_error_counts = 0
-    token = get_valid_token(lexical_errors_file, scanner)
+    token = get_valid_token(lexical_errors_file, scanner, prev_line_number)
     first_line_flag = True
 
     while token:
@@ -59,7 +65,7 @@ def write_tokens_file(scanner):
         except ScannerError as error:
             lexical_error_counts += 1
             write_lexical_error_file(lexical_errors_file, error)
-            token = get_valid_token(lexical_errors_file,scanner)
+            token, prev_error_line_number = get_valid_token(lexical_errors_file, scanner, prev_line_number)
     if lexical_error_counts == 0:
         lexical_errors_file.write('There is no lexical error.')
     lexical_errors_file.close()

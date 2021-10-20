@@ -22,7 +22,7 @@ class Scanner:
                                          11: self.__get_final_function(TokenType.COMMENT),
                                          14: self.__get_final_function(TokenType.WHITESPACE)}
         final_states_with_lookahead = [2, 4, 8]
-        valid_character_pattern = '[\/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
+        valid_character_pattern = '[/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
         self.dfa_instance = DFA(states, transitions,
                                 initial, final_function_by_final_state,
                                 final_states_with_lookahead, valid_character_pattern
@@ -92,7 +92,8 @@ class Scanner:
             raise UnclosedCommentError(self.line_number, error_lexeme)
         elif error.state == 1:
             self.__handle_invalid_number_error(error)
-        else: return None
+        else:
+            return None
 
     def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
         error_lexeme = self.__get_error_lexeme(error.forward)
