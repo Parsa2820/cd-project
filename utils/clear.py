@@ -3,7 +3,7 @@ import os
 
 def clear():
     print('Clearing...')
-    delete_file("../src/input.txt")
+    #delete_file("../src/input.txt")
     delete_file("../src/lexical_errors.txt")
     delete_file("../src/symbol_table.txt")
     delete_file("../src/tokens.txt")
