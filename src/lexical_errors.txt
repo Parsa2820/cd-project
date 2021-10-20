@@ -1,4 +1,0 @@
-1.	(// I know you are here to kill me., Invalid input)
-1.	(man., Invalid input)
-4.	(*/, Unmatched comment)
-13.	(/*this ..., Unclosed comment)
