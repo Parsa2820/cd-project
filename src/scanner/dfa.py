@@ -32,7 +32,6 @@ class DFA:
             if state in self.final_function_by_final_state.keys():
                 if state in self.final_states_with_lookahead:
                     forward -= 1
-
                 lexeme = program[lexeme_begin:forward + 1]
                 return self.final_function_by_final_state[state](lexeme)
 

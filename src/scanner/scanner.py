@@ -103,7 +103,7 @@ class Scanner:
     def __handle_invalid_input(self, error: BadCharacterError):
         error_lexeme = self.__get_error_lexeme(error.forward)
         self.lexeme_begin = error.forward + 1
-        raise InvalidCharacterError(self.line_number, error_lexeme)
+        raise InvalidInputError(self.line_number, error_lexeme)
 
     def __get_error_lexeme(self, forward):
         return self.program[self.lexeme_begin:forward + 1]
@@ -117,14 +117,15 @@ class Scanner:
             raise UnmatchedCommentError(self.line_number)
 
     def get_next_token(self):
-        if self.lexeme_begin > len(self.program):
+        if self.is_program_finished():
             return None
         try:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)
             if token is None:
                 return None
             print(token.type)
-            self.line_number += self.program[self.lexeme_begin:self.lexeme_begin + len(token.value)].count('\n')
+            self.line_number += self.program[self.lexeme_begin:self.lexeme_begin + len(
+                token.value)].count('\n')
             self.lexeme_begin += len(token.value)
             self.__validate_token(token)
             return token
@@ -132,6 +133,9 @@ class Scanner:
             self.__handle_invalid_input(e)
         except NoAvailableTransitionError as e:
             self.__handle_errors(e)
+
+    def is_program_finished(self):
+        return self.lexeme_begin >= len(self.program) - 1
 
 
 class ScannerError(Exception):
@@ -141,7 +145,7 @@ class ScannerError(Exception):
         self.error_type = error_type
 
     def __str__(self):
-        return f'{self.line_number}.\t({self.error_lexeme}, {self.error_type})'
+        return f'({self.error_lexeme}, {self.error_type})'
 
 
 class UnmatchedCommentError(ScannerError):
@@ -155,7 +159,7 @@ class UnclosedCommentError(ScannerError):
         super().__init__(line_number, short_lexeme, 'Unclosed comment')
 
 
-class InvalidCharacterError(ScannerError):
+class InvalidInputError(ScannerError):
     def __init__(self, line_number, error_lexeme):
         super().__init__(line_number, error_lexeme, 'Invalid input')
 

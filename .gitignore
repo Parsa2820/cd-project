@@ -266,3 +266,8 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,visualstudiocode
 
 .vscode
+src.zip
+src/input.txt
+src/lexical_errors.txt
+src/symbol_table.txt
+src/tokens.txt
