@@ -117,7 +117,7 @@ class Scanner:
             raise UnmatchedCommentError(self.line_number)
 
     def get_next_token(self):
-        if self.lexeme_begin > len(self.program):
+        if self.is_program_finished():
             return None
         try:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)

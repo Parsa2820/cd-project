@@ -1,4 +1,5 @@
-from scanner.scanner import Scanner, ScannerError
+import os
+from scanner.scanner import ScannerError
 from share.token import TokenType
 from share.symboltable import symbol_table
 
@@ -9,9 +10,10 @@ class ScannerFileWriter:
     LEXICAL_ERRORS_FILE_NAME = 'lexical_errors.txt'
     NO_LEXICAL_ERRORS_MESSAGE = 'There is no lexical error.'
 
-    def __init__(self, scanner):
+    def __init__(self, scanner, base_path):
         self.scanner = scanner
         self.lexical_errors = []
+        self.base_path = base_path
 
     def write(self):
         self.__write_tokens()
@@ -30,8 +32,10 @@ class ScannerFileWriter:
                 else:
                     token_lines[len(token_lines) - 1] += f' {token}'
             token = self.__get_valid_token()
-        with open(ScannerFileWriter.TOKEN_FILE_NAME, 'w') as token_file:
+        path = self.__get_file_path(ScannerFileWriter.TOKEN_FILE_NAME)
+        with open(path, 'w') as token_file:
             token_file.write('\n'.join(token_lines))
+            token_file.write('\n')
 
     def __get_valid_token(self):
         token = None
@@ -57,10 +61,18 @@ class ScannerFileWriter:
                 else:
                     lexical_errors_lines[len(
                         lexical_errors_lines) - 1] += f' {error}'
-        with open(ScannerFileWriter.LEXICAL_ERRORS_FILE_NAME, 'w') as lexical_errors_file:
+        path = self.__get_file_path(ScannerFileWriter.LEXICAL_ERRORS_FILE_NAME)                        
+        with open(path, 'w') as lexical_errors_file:
             lexical_errors_file.write('\n'.join(lexical_errors_lines))
+            lexical_errors_file.write('\n')
 
     def __write_symbol_table(self):
-        with open(ScannerFileWriter.SYMBOL_TABLE_FILE_NAME, 'w') as symbol_table_file:
+        path = self.__get_file_path(ScannerFileWriter.SYMBOL_TABLE_FILE_NAME)
+        with open(path, 'w') as symbol_table_file:
             for id in symbol_table.keys():
                 symbol_table_file.write(f'{id}.\t{symbol_table[id]}\n')
+
+
+    def __get_file_path(self, file_name):
+        return os.path.join(self.base_path, file_name)
+    

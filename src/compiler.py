@@ -1,18 +1,22 @@
+import os
 from scanner.scanner import Scanner
 from scanner.filewriter import ScannerFileWriter
 
+INPUT_FILE_NAME = 'input.txt'
 
-def read_all_file():
-    with open("input.txt", "r") as program_file:
-        program = program_file.read()
-    program += chr(26)
-    return program
+
+def read_all_file(path):
+    with open(path, 'r') as file:
+        text = file.read()
+    text += chr(26)
+    return text
 
 
 def run_parser():
-    program = read_all_file()
+    base_path = os.path.dirname(os.path.realpath(__file__))
+    program = read_all_file(os.path.join(base_path, INPUT_FILE_NAME))
     scanner = Scanner(program)
-    filewriter = ScannerFileWriter(scanner)
+    filewriter = ScannerFileWriter(scanner, base_path)
     filewriter.write()
 
 
