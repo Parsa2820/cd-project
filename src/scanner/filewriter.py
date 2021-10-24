@@ -49,6 +49,7 @@ class ScannerFileWriter:
     def __write_lexical_errors(self):
         previous_line_number = 0
         lexical_errors_lines = []
+        print(self.lexical_errors)
         if len(self.lexical_errors) == 0:
             lexical_errors_lines.append(
                 ScannerFileWriter.NO_LEXICAL_ERRORS_MESSAGE)

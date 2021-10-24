@@ -22,10 +22,11 @@ class Scanner:
                                          11: self.__get_final_function(TokenType.COMMENT),
                                          14: self.__get_final_function(TokenType.WHITESPACE)}
         final_states_with_lookahead = [2, 4, 8]
-        valid_character_pattern = '[/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
+        valid_character_pattern = '[\/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
+        ignore_validate_states = [10, 12, 13]
         self.dfa_instance = DFA(states, transitions,
                                 initial, final_function_by_final_state,
-                                final_states_with_lookahead, valid_character_pattern
+                                final_states_with_lookahead, valid_character_pattern, ignore_validate_states
                                 )
         self.lexeme_begin = 0
         self.line_number = 1

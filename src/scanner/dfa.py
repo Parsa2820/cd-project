@@ -1,23 +1,19 @@
 import re
 
-k = [0,1, 2, 3, 4, 5, 6, 7, 8, 14]
-
 
 class DFA:
-
     def __init__(self, states, transitions, initial, final_function_by_final_state, final_states_with_lookahead,
-                 valid_character_pattern):
+                 valid_character_pattern, ignore_validate_states):
         self.states = states
         self.transitions = transitions
         self.initial = initial
         self.final_function_by_final_state = final_function_by_final_state
         self.final_states_with_lookahead = final_states_with_lookahead
         self.valid_character_pattern = valid_character_pattern
+        self.ignore_validate_states = ignore_validate_states
 
     def validate_character(self, char, forward, state):
-        # TODO: Bypass check for comments
-
-        if not re.match(self.valid_character_pattern, char) and state in k:
+        if not re.match(self.valid_character_pattern, char) and state not in self.ignore_validate_states:
             raise BadCharacterError(char, forward)
 
     def run(self, program, lexeme_begin):
@@ -25,9 +21,11 @@ class DFA:
         for forward in range(lexeme_begin, len(program)):
             char = program[forward]
             self.validate_character(char, forward, state)
-            available_transitions = [t for t in self.transitions if t.match(state, char)]
+            available_transitions = [
+                t for t in self.transitions if t.match(state, char)]
             if len(available_transitions) != 1:
-                raise NoAvailableTransitionError(available_transitions, state, char, forward)
+                raise NoAvailableTransitionError(
+                    available_transitions, state, char, forward)
             state = available_transitions[0].next_state
             if state in self.final_function_by_final_state.keys():
                 if state in self.final_states_with_lookahead:
