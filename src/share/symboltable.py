@@ -1,15 +1,30 @@
-from share.token import Token, TokenType
-
-symbol_table = {1: 'if',
-                2: 'else',
-                3: 'void',
-                4: 'int',
-                5: 'repeat',
-                6: 'break',
-                7: 'until',
-                8: 'return'}
+from collections import OrderedDict
+from share.symbol import Symbol
 
 
-def extend_symbol_table(symbol_table_length, x):
-    symbol_table.update({symbol_table_length + 1: x})
-    return Token(TokenType.ID, x)
+class SymbolTable:
+    KEYWORDS = ['if', 'else', 'void', 'int',
+                'repeat', 'break', 'until', 'return']
+
+    def __init__(self):
+        self.symbol_table = OrderedDict()
+        self.last_id = 0
+        self.__add_keywords()
+
+    def __add_keywords(self):
+        for keyword in SymbolTable.KEYWORDS:
+            self.extend(keyword)
+
+    def extend(self, lexeme):
+        self.last_id += 1
+        self.symbol_table.update({lexeme: Symbol(self.last_id, lexeme)})
+
+    def is_keyword(self, lexeme):
+        return lexeme in SymbolTable.KEYWORDS
+
+    def contains(self, lexeme):
+        return lexeme in self.symbol_table
+
+    def __str__(self):
+        symbols_str = [f'{symbol}' for symbol in self.symbol_table.values()]
+        return '\n'.join(symbols_str)

@@ -1,6 +1,7 @@
 import os
 from scanner.scanner import Scanner
 from scanner.filewriter import ScannerFileWriter
+from share.symboltable import SymbolTable
 
 INPUT_FILE_NAME = 'input.txt'
 
@@ -15,7 +16,8 @@ def read_all_file(path):
 def run_parser():
     base_path = os.path.dirname(os.path.realpath(__file__))
     program = read_all_file(os.path.join(base_path, INPUT_FILE_NAME))
-    scanner = Scanner(program)
+    symbol_table = SymbolTable()
+    scanner = Scanner(program, symbol_table)
     filewriter = ScannerFileWriter(scanner, base_path)
     filewriter.write()
 

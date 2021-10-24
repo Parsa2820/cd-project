@@ -1,7 +1,7 @@
 import os
 from scanner.scanner import ScannerError
 from share.token import TokenType
-from share.symboltable import symbol_table
+from share.symboltable import SymbolTable
 
 
 class ScannerFileWriter:
@@ -49,7 +49,6 @@ class ScannerFileWriter:
     def __write_lexical_errors(self):
         previous_line_number = 0
         lexical_errors_lines = []
-        print(self.lexical_errors)
         if len(self.lexical_errors) == 0:
             lexical_errors_lines.append(
                 ScannerFileWriter.NO_LEXICAL_ERRORS_MESSAGE)
@@ -70,8 +69,8 @@ class ScannerFileWriter:
     def __write_symbol_table(self):
         path = self.__get_file_path(ScannerFileWriter.SYMBOL_TABLE_FILE_NAME)
         with open(path, 'w') as symbol_table_file:
-            for id in symbol_table.keys():
-                symbol_table_file.write(f'{id}.\t{symbol_table[id]}\n')
+            symbol_table_file.write(f'{self.scanner.symbol_table}')
+            symbol_table_file.write('\n')
 
 
     def __get_file_path(self, file_name):

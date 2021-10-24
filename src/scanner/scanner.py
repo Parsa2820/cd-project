@@ -1,10 +1,10 @@
 from .dfa import DFA, BadCharacterError, Transition, NoAvailableTransitionError, BadCharacterError
 from share.token import Token, TokenType
-from share.symboltable import symbol_table, extend_symbol_table
+from share.symboltable import SymbolTable
 
 
 class Scanner:
-    def __init__(self, program):
+    def __init__(self, program, symbol_table):
         self.program = program
         states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
         transitions = []
@@ -30,6 +30,7 @@ class Scanner:
                                 )
         self.lexeme_begin = 0
         self.line_number = 1
+        self.symbol_table = symbol_table
 
     def __get_number_transitions(self):
         number_transitions = [Transition(0, '[0-9]', 1),
@@ -72,17 +73,13 @@ class Scanner:
 
     def __get_final_function_id_keyword(self):
         def keyword_id_function(x):
-            for i in range(1, 9):
-                if symbol_table[i] == x:
-                    return Token(TokenType.KEYWORD, x)
-
-            symbol_table_length = len(symbol_table.keys())
-            if symbol_table_length == 8:
-                return extend_symbol_table(symbol_table_length, x)
-            for i in range(9, symbol_table_length + 1):
-                if symbol_table[i] == x:
-                    return Token(TokenType.ID, x)
-            return extend_symbol_table(symbol_table_length, x)
+            if self.symbol_table.is_keyword(x):
+                return Token(TokenType.KEYWORD, x)
+            elif self.symbol_table.contains(x):
+                return Token(TokenType.ID, x)
+            else:
+                self.symbol_table.extend(x)
+                return Token(TokenType.ID, x)
 
         return keyword_id_function
 
@@ -94,7 +91,8 @@ class Scanner:
         elif error.state == 1:
             self.__handle_invalid_number_error(error)
         else:
-            self.__handle_invalid_input(BadCharacterError(c=error.c, forward=error.forward - 1))
+            self.__handle_invalid_input(BadCharacterError(
+                c=error.c, forward=error.forward - 1))
 
     def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
         error_lexeme = self.__get_error_lexeme(error.forward)
@@ -122,7 +120,8 @@ class Scanner:
         self.lexeme_begin -= 1
         try:
             if token.type == TokenType.SYMBOL and token.value == '*':
-                self.dfa_instance.validate_character(self.program[self.lexeme_begin+1], self.lexeme_begin+1, 5)
+                self.dfa_instance.validate_character(
+                    self.program[self.lexeme_begin+1], self.lexeme_begin+1, 5)
         except BadCharacterError as e:
             self.__handle_invalid_input(e)
         self.lexeme_begin += 1
@@ -134,7 +133,6 @@ class Scanner:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)
             if token is None:
                 return None
-            print(token.type, token.value)
             self.line_number += self.program[self.lexeme_begin:self.lexeme_begin + len(
                 token.value)].count('\n')
             self.lexeme_begin += len(token.value)
