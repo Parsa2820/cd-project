@@ -4,71 +4,64 @@ from share.symboltable import SymbolTable
 
 
 class Scanner:
+    NUMBER_TRANSITIONS = [Transition(0, '[0-9]', 1),
+                          Transition(1, '[0-9]', 1),
+                          Transition(1, '[^0-9A-Za-z]|\x1A', 2)]
+
+    ID_KEYWORD_TRANSITIONS = [Transition(0, '[A-Za-z]', 3),
+                              Transition(3, '[A-Za-z0-9]', 3),
+                              Transition(3, '[^A-Za-z0-9]|\x1A', 4)]
+
+    SYMBOL_TRANSITIONS = [Transition(0, '[;:,\[\]\(\){}+\-*<]', 5),
+                          Transition(0, '=', 6),
+                          Transition(6, '=', 7),
+                          Transition(6, '[^=]', 8)]
+
+    COMMENT_TRANSITIONS = [Transition(0, '/', 9),
+                           Transition(9, '/', 10),
+                           Transition(9, '\*', 12),
+                           Transition(12, '[^*\x1A]', 12),
+                           Transition(12, '\*', 13),
+                           Transition(13, '\*', 13),
+                           Transition(13, '/', 11),
+                           Transition(13, '[^/*\x1A]', 12),
+                           Transition(10, '\x1A|\n', 11),
+                           Transition(10, '[^\x1A\n]', 10)]
+
+    WHITESPACE_TRANSITIONS = [Transition(0, '[\n\t\f\v\r ]', 14)]
+
     def __init__(self, program, symbol_table):
         self.program = program
-        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-        transitions = []
-        transitions.extend(self.__get_number_transitions())
-        transitions.extend(self.__get_id_keyword_transitions())
-        transitions.extend(self.__get_symbol_transitions())
-        transitions.extend(self.__get_comment_transitions())
-        transitions.extend(self.__get_white_space_transitions())
-        initial = 0
-        final_function_by_final_state = {2: self.__get_final_function(TokenType.NUM),
-                                         4: self.__get_final_function_id_keyword(),
-                                         5: self.__get_final_function(TokenType.SYMBOL),
-                                         7: self.__get_final_function(TokenType.SYMBOL),
-                                         8: self.__get_final_function(TokenType.SYMBOL),
-                                         11: self.__get_final_function(TokenType.COMMENT),
-                                         14: self.__get_final_function(TokenType.WHITESPACE)}
-        final_states_with_lookahead = [2, 4, 8]
-        valid_character_pattern = '[\/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
-        ignore_validate_states = [10, 12, 13]
-        self.dfa_instance = DFA(states, transitions,
-                                initial, final_function_by_final_state,
-                                final_states_with_lookahead, valid_character_pattern, ignore_validate_states
-                                )
+        self.dfa_instance = self.__create_DFA()
         self.lexeme_begin = 0
         self.line_number = 1
         self.symbol_table = symbol_table
 
-    def __get_number_transitions(self):
-        number_transitions = [Transition(0, '[0-9]', 1),
-                              Transition(1, '[0-9]', 1),
-                              Transition(1, '[^0-9A-Za-z]|\x1A', 2)]
-        return number_transitions
+    def __create_DFA(self):
+        states = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+        transitions = []
+        transitions.extend(Scanner.NUMBER_TRANSITIONS)
+        transitions.extend(Scanner.ID_KEYWORD_TRANSITIONS)
+        transitions.extend(Scanner.SYMBOL_TRANSITIONS)
+        transitions.extend(Scanner.COMMENT_TRANSITIONS)
+        transitions.extend(Scanner.WHITESPACE_TRANSITIONS)
+        initial = 0
+        final_function_by_final_state = {2: Scanner.__get_final_function(TokenType.NUM),
+                                         4: self.__get_final_function_id_keyword(),
+                                         5: Scanner.__get_final_function(TokenType.SYMBOL),
+                                         7: Scanner.__get_final_function(TokenType.SYMBOL),
+                                         8: Scanner.__get_final_function(TokenType.SYMBOL),
+                                         11: Scanner.__get_final_function(TokenType.COMMENT),
+                                         14: Scanner.__get_final_function(TokenType.WHITESPACE)}
+        final_states_with_lookahead = [2, 4, 8]
+        valid_character_pattern = '[\/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
+        ignore_validate_states = [10, 12, 13]
+        return DFA(states, transitions,
+            initial, final_function_by_final_state,
+            final_states_with_lookahead, valid_character_pattern, ignore_validate_states
+            )
 
-    def __get_id_keyword_transitions(self):
-        id_keyword_transitions = [Transition(0, '[A-Za-z]', 3),
-                                  Transition(3, '[A-Za-z0-9]', 3),
-                                  Transition(3, '[^A-Za-z0-9]|\x1A', 4)]
-        return id_keyword_transitions
-
-    def __get_symbol_transitions(self):
-        symbol_transitions = [Transition(0, '[;:,\[\]\(\){}+\-*<]', 5),
-                              Transition(0, '=', 6),
-                              Transition(6, '=', 7),
-                              Transition(6, '[^=]', 8)]
-        return symbol_transitions
-
-    def __get_comment_transitions(self):
-        comment_transitions = [Transition(0, '/', 9),
-                               Transition(9, '/', 10),
-                               Transition(9, '\*', 12),
-                               Transition(12, '[^*\x1A]', 12),
-                               Transition(12, '\*', 13),
-                               Transition(13, '\*', 13),
-                               Transition(13, '/', 11),
-                               Transition(13, '[^/*\x1A]', 12),
-                               Transition(10, '\x1A|\n', 11),
-                               Transition(10, '[^\x1A\n]', 10)]
-        return comment_transitions
-
-    def __get_white_space_transitions(self):
-        white_space_transitions = [Transition(0, '[\n\t\f\v\r ]', 14)]
-        return white_space_transitions
-
-    def __get_final_function(self, token_type):
+    def __get_final_function(token_type):
         return lambda x: Token(token_type, x)
 
     def __get_final_function_id_keyword(self):
@@ -91,7 +84,7 @@ class Scanner:
         elif error.state == 1:
             self.__handle_invalid_number_error(error)
         else:
-            self.__handle_invalid_input(BadCharacterError(
+            self.__handle_invalid_input_error(BadCharacterError(
                 c=error.c, forward=error.forward - 1))
 
     def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
@@ -99,7 +92,7 @@ class Scanner:
         self.lexeme_begin = error.forward + 1
         raise InvalidNumberError(self.line_number, error_lexeme)
 
-    def __handle_invalid_input(self, error: BadCharacterError):
+    def __handle_invalid_input_error(self, error: BadCharacterError):
         error_lexeme = self.__get_error_lexeme(error.forward)
         self.lexeme_begin = error.forward + 1
         raise InvalidInputError(self.line_number, error_lexeme)
@@ -123,7 +116,7 @@ class Scanner:
                 self.dfa_instance.validate_character(
                     self.program[self.lexeme_begin+1], self.lexeme_begin+1, 5)
         except BadCharacterError as e:
-            self.__handle_invalid_input(e)
+            self.__handle_invalid_input_error(e)
         self.lexeme_begin += 1
 
     def get_next_token(self):
@@ -140,7 +133,7 @@ class Scanner:
 
             return token
         except BadCharacterError as e:
-            self.__handle_invalid_input(e)
+            self.__handle_invalid_input_error(e)
         except NoAvailableTransitionError as e:
             self.__handle_errors(e)
 
