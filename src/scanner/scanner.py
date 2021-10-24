@@ -93,7 +93,7 @@ class Scanner:
         elif error.state == 1:
             self.__handle_invalid_number_error(error)
         else:
-            return None
+            self.__handle_invalid_input(BadCharacterError(c=error.c, forward=error.forward - 1))
 
     def __handle_invalid_number_error(self, error: NoAvailableTransitionError):
         error_lexeme = self.__get_error_lexeme(error.forward)
@@ -109,12 +109,22 @@ class Scanner:
         return self.program[self.lexeme_begin:forward + 1]
 
     def __validate_token(self, token):
+        self.__check_panic_mode_for_star(token)
         self.__check_unmatched_comment_error(token)
 
     def __check_unmatched_comment_error(self, token):
         if token.type == TokenType.SYMBOL and token.value == '*' and self.program[self.lexeme_begin] == '/':
             self.lexeme_begin += 1
             raise UnmatchedCommentError(self.line_number)
+
+    def __check_panic_mode_for_star(self, token):
+        self.lexeme_begin -= 1
+        try:
+            if token.type == TokenType.SYMBOL and token.value == '*':
+                self.dfa_instance.validate_character(self.program[self.lexeme_begin+1], self.lexeme_begin+1, 5)
+        except BadCharacterError as e:
+            self.__handle_invalid_input(e)
+        self.lexeme_begin += 1
 
     def get_next_token(self):
         if self.is_program_finished():
@@ -123,11 +133,12 @@ class Scanner:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)
             if token is None:
                 return None
-            print(token.type)
+            print(token.type, token.value)
             self.line_number += self.program[self.lexeme_begin:self.lexeme_begin + len(
                 token.value)].count('\n')
             self.lexeme_begin += len(token.value)
             self.__validate_token(token)
+
             return token
         except BadCharacterError as e:
             self.__handle_invalid_input(e)
