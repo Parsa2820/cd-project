@@ -30,6 +30,8 @@ class Scanner:
 
     WHITESPACE_TRANSITIONS = [Transition(0, '[\n\t\f\v\r ]', 14)]
 
+    LAST_TOKEN = Token(TokenType.ID, '$')
+
     def __init__(self, program, symbol_table):
         self.program = program
         self.dfa_instance = self.__create_DFA()
@@ -57,9 +59,9 @@ class Scanner:
         valid_character_pattern = '[\/A-Za-z0-9;:,\[\]\(\)\{\}+\-*<=\n\r\t\v\f\x1A ]'
         ignore_validate_states = [10, 12, 13]
         return DFA(states, transitions,
-            initial, final_function_by_final_state,
-            final_states_with_lookahead, valid_character_pattern, ignore_validate_states
-            )
+                   initial, final_function_by_final_state,
+                   final_states_with_lookahead, valid_character_pattern, ignore_validate_states
+                   )
 
     def __get_final_function(token_type):
         return lambda x: Token(token_type, x)
@@ -121,11 +123,11 @@ class Scanner:
 
     def get_next_token(self):
         if self.is_program_finished():
-            return None
+            return Scanner.LAST_TOKEN
         try:
             token = self.dfa_instance.run(self.program, self.lexeme_begin)
             if token is None:
-                return None
+                return Scanner.LAST_TOKEN
             self.line_number += self.program[self.lexeme_begin:self.lexeme_begin + len(
                 token.value)].count('\n')
             self.lexeme_begin += len(token.value)

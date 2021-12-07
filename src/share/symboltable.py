@@ -3,7 +3,7 @@ from share.symbol import Symbol
 
 
 class SymbolTable:
-    KEYWORDS = ['if', 'else', 'void', 'int',
+    KEYWORDS = ['if', 'endif', 'else', 'void', 'int',
                 'repeat', 'break', 'until', 'return']
 
     def __init__(self):
