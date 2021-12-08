@@ -21,8 +21,8 @@ def run_parser():
     symbol_table = SymbolTable()
     scanner = Scanner(program, symbol_table)
     ParserTest(scanner)
-    filewriter = ScannerFileWriter(scanner, base_path)
-    filewriter.write()
+    # filewriter = ScannerFileWriter(scanner, base_path)
+    # filewriter.write()
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@ from .parsetree.adopter import ParseTreeAdopter
 from .transitiondiagram import *
 import anytree
 from anytree import RenderTree
-import transitiondiagram
+import parser.transitiondiagram
 
 
 class Parser:
@@ -36,10 +36,10 @@ class ParserTest:
         state1 = State(1, [TerminalTransition(state2, Token(TokenType.SYMBOL, '*'))])
         tstates.append(state1)
         transitions = []
-        transitions.append(TerminalTransition(state3, Token(TokenType.NUM, '')))
+        transitions.append(TerminalTransition(state3, Token(TokenType.KEYWORD, 'int')))
         state5 = State(5, [TerminalTransition(state3, Token(TokenType.SYMBOL, ')'))])
         state4 = State(4, [])
-        transitions.append(state4, TerminalTransition(state4, Token(TokenType.NUM, '')))
+        transitions.append(TerminalTransition(state4, Token(TokenType.KEYWORD, 'int')))
         state0 = State(0, transitions)
         tstates.extend([state5, state0, state4])
         firstE = First([Token(TokenType.SYMBOL, '('), Token(TokenType.KEYWORD, 'int')])

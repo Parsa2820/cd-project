@@ -1,7 +1,7 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
-from auxiliaryset import First, Follow
-from parsetree.parsetree import ParseTree, ParseTreeNode
+from parser.auxiliaryset import First, Follow
+from parser.parsetree.parsetree import ParseTree, ParseTreeNode
 
 
 class TransitionDiagram:
@@ -16,12 +16,12 @@ class TransitionDiagram:
 
     @staticmethod
     def update_current_token():
-        TransitionDiagram.current_token = TransitionDiagram.scanner.next_token()
+        TransitionDiagram.current_token = TransitionDiagram.scanner.get_next_token()
 
     def parse(self, parent: ParseTreeNode):
         current_state = self.init_state
         while not current_state.is_final:
-            current_state = current_state.transmit(TransitionDiagram.current_token, )
+            current_state = current_state.transmit(TransitionDiagram.current_token, parent)
 
         parent.add_child(ParseTreeNode(self.name))
         return True
@@ -33,11 +33,12 @@ class State:
         self.transitions = transitions
         self.is_final = is_final
 
-    def transmit(self, token):
+    def transmit(self, token, parent):
         for transition in self.transitions:
-            if transition.match_first(token) and transition.match(token):
-                return transition.next_state
+            if transition.match_first(token) and transition.match(token, parent):
+                return transition.destination_state
         # handle error when no transition matches
+        raise Exception("No transition matches")
 
 
 class AbstractTransitionType:
@@ -92,7 +93,14 @@ class NonTerminalTransition(AbstractTransitionType):
         self.transition_diagram = transition_diagram
 
     def match(self, token, parent):
-        return self.transition_diagram.parse()
+        current = ParseTreeNode(self.transition_diagram.name)
+        current.parent = parent
+        result = self.transition_diagram.parse(current)
+        return result
+        # if result:
+        #     parent.add_child(current)
+        #     return True
+        # return False
 
     def match_first(self, token):
         if self.transition_diagram.first.include(token):
