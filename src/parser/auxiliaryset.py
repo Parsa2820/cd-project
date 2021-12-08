@@ -1,8 +1,11 @@
+from share.token import Token, TokenType
+
+
 class PredictiveAuxiliarySet:
     def __init__(self, tokens):
         self.tokens = tokens
 
-    def include(self, input_token):
+    def include(self, input_token: Token):
         for token in self.tokens:
             if token.type != input_token.type:
                 continue

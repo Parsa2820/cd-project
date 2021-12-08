@@ -1,6 +1,5 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
-from share.symboltable import SymbolTable
 from auxiliaryset import First, Follow
 
 
@@ -12,7 +11,7 @@ class TransitionDiagram:
     scanner: Scanner = None
     current_token: Token = None
 
-    def __init__(self, states, scanner, init_state, first, follow):
+    def __init__(self, states, scanner, init_state, first: First, follow: Follow):
         self.states = states
         self.init_state = init_state
         self.first = first
@@ -35,12 +34,11 @@ class State:
             if not transition.match_first(token):
                 continue
             if transition.match(token):
-                pass # we were here
+                pass  # we were here
         return None
 
 
 class AbstractTransitionType:
-
     def __init__(self, state):
         self.destination_state = state
 
