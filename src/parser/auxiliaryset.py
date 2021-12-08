@@ -18,7 +18,7 @@ class PredictiveAuxiliarySet:
 
 
 class First(PredictiveAuxiliarySet):
-    def __init__(self, tokens, has_epsilon):
+    def __init__(self, tokens, has_epsilon=False):
         super().__init__(tokens)
         self.has_epsilon = has_epsilon
 

@@ -1,4 +1,6 @@
 import os
+
+from parser.parser import ParserTest
 from scanner.scanner import Scanner
 from scanner.filewriter import ScannerFileWriter
 from share.symboltable import SymbolTable
@@ -18,6 +20,7 @@ def run_parser():
     program = read_all_file(os.path.join(base_path, INPUT_FILE_NAME))
     symbol_table = SymbolTable()
     scanner = Scanner(program, symbol_table)
+    ParserTest(scanner)
     filewriter = ScannerFileWriter(scanner, base_path)
     filewriter.write()
 
