@@ -1,43 +1,18 @@
-import enum
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
 from share.symboltable import SymbolTable
-
-
-def is_in_token_set(input_token, token_set):
-    for token in token_set:
-        if token.type != input_token.type:
-            continue
-        elif token.type == TokenType.KEYWORD or token.type == TokenType.SYMBOL:
-            if token.value == input_token.value:
-                return True
-        else:
-            return True
-    return False
+from auxiliaryset import First, Follow
 
 
 def update_current_token():
     TransitionDiagram.current_token = TransitionDiagram.scanner.next_token()
 
 
-class First:
-    def __init__(self, tokens, has_epsilon, has_dollar):
-        self.tokens = tokens
-        self.has_epsilon = has_epsilon
-
-
-
-class Follow:
-    def __init__(self, tokens, has_dollar):
-        self.tokens = tokens
-
-
-
 class TransitionDiagram:
     scanner: Scanner = None
     current_token: Token = None
 
-    def __init__(self, states, scanner, init_state, first, follow ):
+    def __init__(self, states, scanner, init_state, first, follow):
         self.states = states
         self.init_state = init_state
         self.first = first
@@ -60,7 +35,7 @@ class State:
             if not transition.match_first(token):
                 continue
             if transition.match(token):
-                TransitionDiagramtransition.destination_state
+                pass # we were here
         return None
 
 
@@ -89,34 +64,33 @@ class TerminalTransition(AbstractTransitionType):
         self.terminal = terminal
 
     def match(self, token: Token):
+        if not self.__token_equal_terminal(token):
+            return False
+        update_current_token()
+        return True
+
+    def match_first(self, token):
+        return self.__token_equal_terminal(token)
+
+    def __token_equal_terminal(self, token):
         if token.type != self.terminal.type:
             return False
         if token.type == TokenType.KEYWORD or token.type == TokenType.SYMBOL:
             if token.value != self.terminal.value:
                 return False
-        update_current_token()
         return True
-
-    def match_first(self, token):
-        return is_in_token_set(token, [self.terminal])
 
 
 class NonTerminalTransition(AbstractTransitionType):
-    def __init__(self, non_terminal_transition_diagram: TransitionDiagram):
-        self.non_terminal_transition_diagram = non_terminal_transition_diagram
+    def __init__(self, transition_diagram: TransitionDiagram):
+        self.transition_diagram = transition_diagram
 
     def match(self, token):
         return token == self.non_terminal
 
     def match_first(self, token):
-        if is_in_token_set(token, self.non_terminal_transition_diagram.first.tokens):
+        if self.transition_diagram.first.include(token):
             return True
-        if is_in_token_set(token, self.non_terminal_transition_diagram.follow.tokens) \
-                and self.non_terminal_transition_diagram.first.has_epsilon:
+        if self.transition_diagram.follow.include(token) and self.transition_diagram.first.has_epsilon:
             return True
         return False
-
-
-class Transition:
-    def __init__(self, transition_type: AbstractTransitionType, next_state):
-        pass
