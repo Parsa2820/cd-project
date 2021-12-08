@@ -3,24 +3,24 @@ from share.token import Token, TokenType
 from auxiliaryset import First, Follow
 
 
-def update_current_token():
-    TransitionDiagram.current_token = TransitionDiagram.scanner.next_token()
-
-
 class TransitionDiagram:
+    transition_diagram_by_nonterminal = None
     scanner: Scanner = None
     current_token: Token = None
 
-    def __init__(self, states, scanner, init_state, first: First, follow: Follow):
-        self.states = states
+    def __init__(self, init_state, first: First, follow: Follow):
         self.init_state = init_state
         self.first = first
         self.follow = follow
 
+    def update_current_token():
+        TransitionDiagram.current_token = TransitionDiagram.scanner.next_token()
+
     def parse(self):
         current_state = self.init_state
         while not current_state.is_final:
-            pass
+            current_state = current_state.transmit(TransitionDiagram.current_token)
+        return True
 
 
 class State:
@@ -31,16 +31,14 @@ class State:
 
     def transmit(self, token):
         for transition in self.transitions:
-            if not transition.match_first(token):
-                continue
-            if transition.match(token):
-                pass  # we were here
-        return None
+            if transition.match_first(token) and transition.match(token):
+                return transition.next_state
+        # handle error when no transition matches
 
 
 class AbstractTransitionType:
-    def __init__(self, state):
-        self.destination_state = state
+    def __init__(self, destination_state: State):
+        self.destination_state = destination_state
 
     def match(self, token):
         pass
@@ -58,13 +56,14 @@ class EpsilonTransition(AbstractTransitionType):
 
 
 class TerminalTransition(AbstractTransitionType):
-    def __init__(self, terminal: Token):
+    def __init__(self, destination_state: State, terminal: Token):
+        super().__init__(destination_state)
         self.terminal = terminal
 
     def match(self, token: Token):
         if not self.__token_equal_terminal(token):
             return False
-        update_current_token()
+        TransitionDiagram.update_current_token()
         return True
 
     def match_first(self, token):
@@ -80,11 +79,12 @@ class TerminalTransition(AbstractTransitionType):
 
 
 class NonTerminalTransition(AbstractTransitionType):
-    def __init__(self, transition_diagram: TransitionDiagram):
+    def __init__(self, destination_state: State, transition_diagram: TransitionDiagram):
+        super().__init__(destination_state)
         self.transition_diagram = transition_diagram
 
     def match(self, token):
-        return token == self.non_terminal
+        return self.transition_diagram.parse()
 
     def match_first(self, token):
         if self.transition_diagram.first.include(token):
