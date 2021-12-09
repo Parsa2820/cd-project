@@ -21,14 +21,13 @@ class TransitionDiagram:
     def parse(self, parent: ParseTreeNode):
         current_state = self.init_state
         while not current_state.is_final:
-            current_state = current_state.transmit(TransitionDiagram.current_token, parent)
-
-        parent.add_child(ParseTreeNode(self.name))
+            current_state = current_state.transmit(
+                TransitionDiagram.current_token, parent)
         return True
 
 
 class State:
-    def __init__(self, number, transitions, is_final = False):
+    def __init__(self, number, transitions, is_final=False):
         self.number = number
         self.transitions = transitions
         self.is_final = is_final
@@ -38,6 +37,7 @@ class State:
             if transition.match_first(token) and transition.match(token, parent):
                 return transition.destination_state
         # handle error when no transition matches
+        return State(-1, [], True)
         raise Exception("No transition matches")
 
 
@@ -59,7 +59,7 @@ class EpsilonTransition(AbstractTransitionType):
 
     def match_first(self, token):
         # hesse khobi behesh nadarim
-        # bayad epsilon akhar bashe dar barresi transionha 
+        # bayad epsilon akhar bashe dar barresi transionha
         return True
 
 
@@ -96,11 +96,10 @@ class NonTerminalTransition(AbstractTransitionType):
         current = ParseTreeNode(self.transition_diagram.name)
         current.parent = parent
         result = self.transition_diagram.parse(current)
-        return result
-        # if result:
-        #     parent.add_child(current)
-        #     return True
-        # return False
+        if result:
+            parent.add_child(current)
+            return True
+        return False
 
     def match_first(self, token):
         if self.transition_diagram.first.include(token):
