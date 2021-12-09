@@ -271,3 +271,5 @@ src/input.txt
 src/lexical_errors.txt
 src/symbol_table.txt
 src/tokens.txt
+src/parse_tree.txt
+src/syntax_errors.txt

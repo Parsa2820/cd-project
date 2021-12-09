@@ -1,13 +1,8 @@
 import os
-
-import anytree
-
+from parser.filewriter import ParserFileWriter
 from parser.parser import SimpleArithmeticParser
-from parser.parsetree.adopter import ParseTreeAdopter
 from scanner.scanner import Scanner
-from scanner.filewriter import ScannerFileWriter
 from share.symboltable import SymbolTable
-from anytree import RenderTree, Node
 
 INPUT_FILE_NAME = 'input.txt'
 
@@ -26,14 +21,8 @@ def run_parser():
     scanner = Scanner(program, symbol_table)
     parser = SimpleArithmeticParser(scanner)
     tree = parser.parse()
-    # print(repr(tree))
-    anytree_root = ParseTreeAdopter(tree).anytree_root
-    # print(RenderTree(anytree_root, style=anytree.AsciiStyle()))
-    utf8stdout = open(1, 'w', encoding='utf-8', closefd=False)
-    for pre, fill, node in RenderTree(anytree_root):
-        print(f'{pre}{node.name}', file=utf8stdout)
-    # filewriter = ScannerFileWriter(scanner, base_path)
-    # filewriter.write()
+    file_writer = ParserFileWriter(tree, base_path)
+    file_writer.write()
 
 
 if __name__ == '__main__':
