@@ -1,6 +1,6 @@
 import os
 from parser.filewriter import ParserFileWriter
-from parser.parser import SimpleArithmeticParser
+from parser.parser import *
 from scanner.scanner import Scanner
 from share.symboltable import SymbolTable
 
@@ -20,6 +20,7 @@ def run_parser():
     symbol_table = SymbolTable()
     scanner = Scanner(program, symbol_table)
     parser = SimpleArithmeticParser(scanner)
+    # parser = CMinusParser(scanner)
     tree = parser.parse()
     file_writer = ParserFileWriter(tree, base_path)
     file_writer.write()

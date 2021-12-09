@@ -1,9 +1,4 @@
-from abc import abstractmethod
-from parser.parsetree.adopter import ParseTreeAdopter
 from parser.transitiondiagram import *
-import anytree
-from anytree import RenderTree
-import parser.transitiondiagram
 
 
 class ParserBase:
@@ -19,6 +14,17 @@ class ParserBase:
         parse_tree = ParseTree(root)
         self.start_symbol_transition_diagram.parse(root)
         return parse_tree
+
+
+class CMinusParser(ParserBase):
+    def __init__(self, scanner):
+        super().__init__(scanner, self.__grammar_setter)
+
+    def __grammar_setter(self):
+        # IMPLEMENT ME
+        pass
+        # self.start_symbol_name = 'Program'
+        # self.start_symbol_transition_diagram = program
 
 
 class SimpleArithmeticParser(ParserBase):
