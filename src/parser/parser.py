@@ -35,7 +35,7 @@ mul_terminal = Token(TokenType.SYMBOL, '*')
 class ParserBase:
     def __init__(self, scanner, grammar_setter):
         TransitionDiagram.scanner = scanner
-        TransitionDiagram.current_token = scanner.get_next_token()
+        TransitionDiagram.update_current_token()
         self.start_symbol_name = None
         self.start_symbol_transition_diagram = None
         grammar_setter()

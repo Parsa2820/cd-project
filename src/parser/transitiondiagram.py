@@ -16,7 +16,10 @@ class TransitionDiagram:
 
     @staticmethod
     def update_current_token():
-        TransitionDiagram.current_token = TransitionDiagram.scanner.get_next_token()
+        token = TransitionDiagram.scanner.get_next_token()
+        while token is None or token.type in [TokenType.COMMENT, TokenType.WHITESPACE]:
+            token = TransitionDiagram.scanner.get_next_token()
+        TransitionDiagram.current_token = token
 
     def parse(self, parent: ParseTreeNode):
         current_state = self.init_state
