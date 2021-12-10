@@ -90,7 +90,7 @@ class CfgToTransitionDiagramConverter:
                 for symbol in reversed(rhs[1:]):
                     diagram_next_state = self.__get_state(
                         diagram_next_state, symbol)
-                start_state.transitions.append(
-                    self.__get_transition(diagram_next_state, rhs[0]))
+                start_state.transitions.insert(
+                    0, self.__get_transition(diagram_next_state, rhs[0]))
 
         return self.transition_diagrams_by_name[self.start_symbol]
