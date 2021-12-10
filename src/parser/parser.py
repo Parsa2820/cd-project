@@ -1,6 +1,7 @@
-from auxiliaryset import Follow, First
-from parsetree.parsetree import ParseTree, ParseTreeNode
-from transitiondiagram import *
+from parser.auxiliaryset import Follow, First
+from parser.parsetree.parsetree import ParseTree, ParseTreeNode
+from parser.transitiondiagram import *
+from converter import CfgToTransitionDiagramConverter
 
 dollar_terminal = Token(TokenType.SYMBOL, '$')
 ID_terminal = Token(TokenType.ID, '')
@@ -225,6 +226,10 @@ class SimpleArithmeticParser(ParserBase):
         super().__init__(scanner, self.__grammar_setter)
 
     def __grammar_setter(self):
+        d:TransitionDiagram = CfgToTransitionDiagramConverter('').get_grammar_diagram()
+        self.start_symbol_name = d.name
+        self.start_symbol_transition_diagram = d
+        return
         e = TransitionDiagram(None,
                               First([Token(TokenType.KEYWORD, 'int'),
                                      Token(TokenType.SYMBOL, '(')]),
