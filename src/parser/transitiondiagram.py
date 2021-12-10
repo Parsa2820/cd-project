@@ -75,7 +75,8 @@ class TerminalTransition(AbstractTransitionType):
         if not self.__token_equal_terminal(token):
             return False
         TransitionDiagram.update_current_token()
-        parent.add_child(ParseTreeNode(str(token)))
+        if token.value != '$':
+            parent.add_child(ParseTreeNode(str(token)))
         return True
 
     def match_first(self, token):

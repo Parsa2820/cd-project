@@ -5,7 +5,9 @@ from share.token import Token, TokenType
 
 
 class CfgToTransitionDiagramConverter:
-    AUX_SET_PATTERN = re.compile(r'(\w+)\s*(.*)')
+    AUX_SET_PATTERN = re.compile(r'([^\s]+)\s*(.*)')
+    AUX_SET_SEPARATOR = r'\s*@\s*'
+    RULES_PATTERN = re.compile(r'([^\s]+)\s*->\s*(.*)')
 
     def __init__(self, cfg, firsts_string, follows_string):
         self.firsts = {}
@@ -24,7 +26,7 @@ class CfgToTransitionDiagramConverter:
         for key, value in aux_set_matched:
             has_epsilon = False
             first = []
-            for x in re.split(r'\s*,\s*', value):
+            for x in re.split(CfgToTransitionDiagramConverter.AUX_SET_SEPARATOR, value):
                 if x == 'EPSILON':
                     has_epsilon = True
                 else:
@@ -36,10 +38,10 @@ class CfgToTransitionDiagramConverter:
             follows_string)
         for key, value in aux_set_matched:
             self.follows[key] = Follow(
-                [self.__terminal_to_token(x) for x in re.split(r'\s*,\s*', value)])
+                [self.__terminal_to_token(x) for x in re.split(CfgToTransitionDiagramConverter.AUX_SET_SEPARATOR, value)])
 
     def __extract_rhs(self, rhs_string):
-        single = re.split(r'\s*\|\s*', rhs_string)
+        single = [x.strip() for x in re.split(r'\s*\|\s*', rhs_string)]
         return [re.split(r'\s+', s) for s in single]
 
     def __get_number_of_states(self, rhs_list):
@@ -49,7 +51,7 @@ class CfgToTransitionDiagramConverter:
         return x
 
     def __terminal_to_token(self, terminal):
-        if terminal in ['$', ';', '[', ']', '(', ')', '{', '}', '<', '==', '+', '-', '*', ',']:
+        if terminal in ['$', ';', '[', ']', '(', ')', '{', '}', '<', '==', '+', '-', '*', ',', '=']:
             return Token(TokenType.SYMBOL, terminal)
         if terminal in ['if', 'endif', 'else', 'void', 'int', 'repeat', 'break', 'until', 'return']:
             return Token(TokenType.KEYWORD, terminal)
@@ -73,7 +75,7 @@ class CfgToTransitionDiagramConverter:
         return State(state_number, [transition])
 
     def __extract_rules(self, cfg):
-        rule_pattern = re.compile(r'(\w+)\s*->\s*(.*)')
+        rule_pattern = CfgToTransitionDiagramConverter.RULES_PATTERN
         rules_matched = rule_pattern.findall(cfg)
         for lhs, rhs_list in rules_matched:
             self.rules[lhs] = self.__extract_rhs(rhs_list)
