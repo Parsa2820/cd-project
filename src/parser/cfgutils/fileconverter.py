@@ -1,6 +1,6 @@
 import os
 from compiler import read_all_file
-from src.parser.cfgutils.converter import CfgToTransitionDiagramConverter
+from parser.cfgutils.converter import CfgToTransitionDiagramConverter
 
 
 class FileConverter(CfgToTransitionDiagramConverter):

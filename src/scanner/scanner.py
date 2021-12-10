@@ -30,7 +30,7 @@ class Scanner:
 
     WHITESPACE_TRANSITIONS = [Transition(0, '[\n\t\f\v\r ]', 14)]
 
-    LAST_TOKEN = Token(TokenType.ID, '$')
+    LAST_TOKEN = Token(TokenType.SYMBOL, '$')
 
     def __init__(self, program, symbol_table):
         self.program = program
