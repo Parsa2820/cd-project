@@ -1,7 +1,7 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
-from src.parser.auxiliaryset import First, Follow
-from src.parser.parsetree.parsetree import ParseTree, ParseTreeNode
+from parser.auxiliaryset import First, Follow
+from parser.parsetree.parsetree import ParseTree, ParseTreeNode
 
 
 class TransitionDiagram:
@@ -75,8 +75,7 @@ class TerminalTransition(AbstractTransitionType):
         if not self.__token_equal_terminal(token):
             return False
         TransitionDiagram.update_current_token()
-        if token.value != '$':
-            parent.add_child(ParseTreeNode(str(token)))
+        parent.add_child(ParseTreeNode(str(token)))
         return True
 
     def match_first(self, token):

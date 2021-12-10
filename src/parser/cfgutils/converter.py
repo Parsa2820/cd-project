@@ -1,6 +1,6 @@
 import re
-from src.parser.auxiliaryset import First, Follow
-from src.parser.transitiondiagram import EpsilonTransition, NonTerminalTransition, State, TerminalTransition, TransitionDiagram
+from parser.auxiliaryset import First, Follow
+from parser.transitiondiagram import EpsilonTransition, NonTerminalTransition, State, TerminalTransition, TransitionDiagram
 from share.token import Token, TokenType
 
 

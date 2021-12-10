@@ -5,10 +5,10 @@ Arian Yazdanparast - 98110095
 
 import os
 
-from src.parser.filewriter import ParserFileWriter
-from src.parser.parser import *
-from src.scanner.scanner import Scanner
-from src.share.symboltable import SymbolTable
+from parser.filewriter import ParserFileWriter
+from parser.parser import *
+from scanner.scanner import Scanner
+from share.symboltable import SymbolTable
 
 INPUT_FILE_NAME = 'input.txt'
 
