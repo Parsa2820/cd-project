@@ -1,7 +1,7 @@
 from parser.auxiliaryset import Follow, First
 from parser.parsetree.parsetree import ParseTree, ParseTreeNode
 from parser.transitiondiagram import *
-from converter import CfgToTransitionDiagramConverter
+from parser.cfgutils.converter import CfgToTransitionDiagramConverter
 
 dollar_terminal = Token(TokenType.SYMBOL, '$')
 ID_terminal = Token(TokenType.ID, '')
