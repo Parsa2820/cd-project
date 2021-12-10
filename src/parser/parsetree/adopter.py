@@ -1,5 +1,5 @@
 from anytree import Node as AnyTreeNode
-from src.parser.parsetree.parsetree import ParseTree, ParseTreeNode
+from parser.parsetree.parsetree import ParseTree, ParseTreeNode
 
 
 class ParseTreeAdopter:

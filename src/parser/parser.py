@@ -1,6 +1,5 @@
-
-from src.parser.cfgutils.fileconverter import FileConverter
-from src.parser.transitiondiagram import *
+from parser.cfgutils.fileconverter import FileConverter
+from parser.transitiondiagram import *
 
 
 class ParserBase:

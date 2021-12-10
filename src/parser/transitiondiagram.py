@@ -1,7 +1,7 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
-from src.parser.auxiliaryset import First, Follow
-from src.parser.parsetree.parsetree import ParseTree, ParseTreeNode
+from parser.auxiliaryset import First, Follow
+from parser.parsetree.parsetree import ParseTreeNode
 
 
 class TransitionDiagram:
@@ -25,7 +25,6 @@ class TransitionDiagram:
     def parse(self, parent: ParseTreeNode):
         current_state = self.init_state
         while not current_state.is_final:
-            print(self.name)
             current_state = current_state.transmit(
                 TransitionDiagram.current_token, parent)
         return True
@@ -40,7 +39,6 @@ class State:
     def transmit(self, token, parent):
         for transition in self.transitions:
             if transition.match_first(token) and transition.match(token, parent):
-                print(token , transition , TransitionDiagram.scanner.line_number)
                 return transition.destination_state
         transition = self.transitions[0]
         if self.__check_dollar(token):
@@ -88,8 +86,6 @@ class EpsilonTransition(AbstractTransitionType):
         return True
 
     def match_first(self, token):
-        # hesse khobi behesh nadarim
-        # bayad epsilon akhar bashe dar barresi transionha
         return True
 
     def match_follow(self, token):
