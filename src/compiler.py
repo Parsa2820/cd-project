@@ -1,4 +1,5 @@
 import os
+
 from parser.filewriter import ParserFileWriter
 from parser.parser import *
 from scanner.scanner import Scanner
