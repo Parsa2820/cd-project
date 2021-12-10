@@ -1,6 +1,8 @@
-from auxiliaryset import Follow, First
-from parsetree.parsetree import ParseTree, ParseTreeNode
-from transitiondiagram import *
+from parser.auxiliaryset import Follow, First
+from parser.cfgutils.fileconverter import FileConverter
+from parser.parsetree.parsetree import ParseTree, ParseTreeNode
+from parser.transitiondiagram import *
+from parser.cfgutils.converter import CfgToTransitionDiagramConverter
 
 dollar_terminal = Token(TokenType.SYMBOL, '$')
 ID_terminal = Token(TokenType.ID, '')
@@ -33,7 +35,7 @@ mul_terminal = Token(TokenType.SYMBOL, '*')
 class ParserBase:
     def __init__(self, scanner, grammar_setter):
         TransitionDiagram.scanner = scanner
-        TransitionDiagram.current_token = scanner.get_next_token()
+        TransitionDiagram.update_current_token()
         self.start_symbol_name = None
         self.start_symbol_transition_diagram = None
         grammar_setter()
@@ -225,6 +227,10 @@ class SimpleArithmeticParser(ParserBase):
         super().__init__(scanner, self.__grammar_setter)
 
     def __grammar_setter(self):
+        d:TransitionDiagram = CfgToTransitionDiagramConverter('', '', '').get_grammar_diagram()
+        self.start_symbol_name = d.name
+        self.start_symbol_transition_diagram = d
+        return
         e = TransitionDiagram(None,
                               First([Token(TokenType.KEYWORD, 'int'),
                                      Token(TokenType.SYMBOL, '(')]),
@@ -270,3 +276,15 @@ class SimpleArithmeticParser(ParserBase):
         y.init_state = y0
         self.start_symbol_name = 'E'
         self.start_symbol_transition_diagram = e
+
+
+
+class FileCfgParser(ParserBase):
+    def __init__(self, scanner, base_path):
+        self.base_path = base_path
+        super().__init__(scanner, self.__grammar_setter)
+
+    def __grammar_setter(self):
+        start_diagram = FileConverter(self.base_path).get_grammar_diagram()
+        self.start_symbol_name = start_diagram.name
+        self.start_symbol_transition_diagram = start_diagram
