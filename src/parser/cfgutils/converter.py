@@ -8,22 +8,6 @@ class CfgToTransitionDiagramConverter:
     AUX_SET_PATTERN = re.compile(r'(\w+)\s*(.*)')
 
     def __init__(self, cfg, firsts_string, follows_string):
-        cfg = '''E -> T X $
-        T -> ( E ) | int Y
-        X -> + E | EPSILON
-        Y -> * T | EPSILON'''
-
-        firsts_string = '''T 	(, int
-        X 	+, EPSILON
-        Y 	*, EPSILON
-        E 	(, int'''
-
-        follows_string = '''E 	$, )
-        T 	$, +
-        X 	$
-        Y 	$, +
-        '''
-
         self.firsts = {}
         self.follows = {}
         self.rules = {}

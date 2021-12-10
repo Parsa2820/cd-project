@@ -20,7 +20,7 @@ def run_parser():
     program = read_all_file(os.path.join(base_path, INPUT_FILE_NAME))
     symbol_table = SymbolTable()
     scanner = Scanner(program, symbol_table)
-    parser = SimpleArithmeticParser(scanner)
+    parser = FileCfgParser(scanner, base_path)
     # parser = CMinusParser(scanner)
     tree = parser.parse()
     file_writer = ParserFileWriter(tree, base_path)

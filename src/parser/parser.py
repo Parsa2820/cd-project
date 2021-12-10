@@ -1,4 +1,5 @@
 from parser.auxiliaryset import Follow, First
+from parser.cfgutils.fileconverter import FileConverter
 from parser.parsetree.parsetree import ParseTree, ParseTreeNode
 from parser.transitiondiagram import *
 from parser.cfgutils.converter import CfgToTransitionDiagramConverter
@@ -275,3 +276,15 @@ class SimpleArithmeticParser(ParserBase):
         y.init_state = y0
         self.start_symbol_name = 'E'
         self.start_symbol_transition_diagram = e
+
+
+
+class FileCfgParser(ParserBase):
+    def __init__(self, scanner, base_path):
+        self.base_path = base_path
+        super().__init__(scanner, self.__grammar_setter)
+
+    def __grammar_setter(self):
+        start_diagram = FileConverter(self.base_path).get_grammar_diagram()
+        self.start_symbol_name = start_diagram.name
+        self.start_symbol_transition_diagram = start_diagram
