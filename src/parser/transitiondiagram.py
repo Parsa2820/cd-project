@@ -104,8 +104,8 @@ class TerminalTransition(AbstractTransitionType):
     def match(self, token, parent):
         if not self.__token_equal_terminal(token):
             return False
-        AbstractTransitionType.error_line_number = TransitionDiagram.scanner.line_number
         TransitionDiagram.update_current_token()
+        AbstractTransitionType.error_line_number = TransitionDiagram.scanner.line_number
         node_value = str(token) if token.value != '$' else '$'
         parent.add_child(ParseTreeNode(node_value))
         return True
