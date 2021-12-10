@@ -226,7 +226,7 @@ class SimpleArithmeticParser(ParserBase):
         super().__init__(scanner, self.__grammar_setter)
 
     def __grammar_setter(self):
-        d:TransitionDiagram = CfgToTransitionDiagramConverter('').get_grammar_diagram()
+        d:TransitionDiagram = CfgToTransitionDiagramConverter('', '', '').get_grammar_diagram()
         self.start_symbol_name = d.name
         self.start_symbol_transition_diagram = d
         return

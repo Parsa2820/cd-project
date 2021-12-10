@@ -5,32 +5,54 @@ from share.token import Token, TokenType
 
 
 class CfgToTransitionDiagramConverter:
+    AUX_SET_PATTERN = re.compile(r'(\w+)\s*(.*)')
 
-    def __init__(self, cfg):
-        self.cfg = '''E -> T X $
+    def __init__(self, cfg, firsts_string, follows_string):
+        cfg = '''E -> T X $
         T -> ( E ) | int Y
         X -> + E | EPSILON
         Y -> * T | EPSILON'''
 
-        self.firsts = {
-            'E': First([self.__terminal_to_token('int'), self.__terminal_to_token('(')]),
-            'T': First([self.__terminal_to_token('int'), self.__terminal_to_token('(')]),
-            'X': First([self.__terminal_to_token('+')], True),
-            'Y': First([self.__terminal_to_token('*')], True)
-        }
+        firsts_string = '''T 	(, int
+        X 	+, EPSILON
+        Y 	*, EPSILON
+        E 	(, int'''
 
-        self.follows = {
-            'E': Follow([self.__terminal_to_token(')'), self.__terminal_to_token('$')]),
-            'T': Follow([self.__terminal_to_token('+'), self.__terminal_to_token(')'), self.__terminal_to_token('$')]),
-            'Y': Follow([self.__terminal_to_token('+'), self.__terminal_to_token(')'), self.__terminal_to_token('$')]),
-            'X': Follow([self.__terminal_to_token(')'), self.__terminal_to_token('$')])
-        }
+        follows_string = '''E 	$, )
+        T 	$, +
+        X 	$
+        Y 	$, +
+        '''
 
+        self.firsts = {}
+        self.follows = {}
         self.rules = {}
         self.transition_diagrams_by_name = {}
         self.start_symbol = None
-        self.__extract_rules()
+        self.__extract_firsts(firsts_string)
+        self.__extract_follows(follows_string)
+        self.__extract_rules(cfg)
         self.__init_transition_diagrams()
+
+    def __extract_firsts(self, firsts_string):
+        aux_set_matched = CfgToTransitionDiagramConverter.AUX_SET_PATTERN.findall(
+            firsts_string)
+        for key, value in aux_set_matched:
+            has_epsilon = False
+            first = []
+            for x in re.split(r'\s*,\s*', value):
+                if x == 'EPSILON':
+                    has_epsilon = True
+                else:
+                    first.append(self.__terminal_to_token(x))
+            self.firsts[key] = First(first, has_epsilon)
+
+    def __extract_follows(self, follows_string):
+        aux_set_matched = CfgToTransitionDiagramConverter.AUX_SET_PATTERN.findall(
+            follows_string)
+        for key, value in aux_set_matched:
+            self.follows[key] = Follow(
+                [self.__terminal_to_token(x) for x in re.split(r'\s*,\s*', value)])
 
     def __extract_rhs(self, rhs_string):
         single = re.split(r'\s*\|\s*', rhs_string)
@@ -66,9 +88,9 @@ class CfgToTransitionDiagramConverter:
         transition = self.__get_transition(diagram_next_state, symbol)
         return State(state_number, [transition])
 
-    def __extract_rules(self):
+    def __extract_rules(self, cfg):
         rule_pattern = re.compile(r'(\w+)\s*->\s*(.*)')
-        rules_matched = rule_pattern.findall(self.cfg)
+        rules_matched = rule_pattern.findall(cfg)
         for lhs, rhs_list in rules_matched:
             self.rules[lhs] = self.__extract_rhs(rhs_list)
 
