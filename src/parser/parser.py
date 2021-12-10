@@ -1,4 +1,5 @@
 from parser.cfgutils.fileconverter import FileConverter
+from parser.parsetree.parsetree import ParseTree
 from parser.transitiondiagram import *
 
 
