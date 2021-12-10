@@ -4,7 +4,7 @@ from parser.cfgutils.converter import CfgToTransitionDiagramConverter
 
 
 class FileConverter(CfgToTransitionDiagramConverter):
-    DIR_NAME = 'cfg'
+    DIR_NAME = 'parser/cfg'
     CFG_FILE_NAME = 'cfg.txt'
     FIRSTS_FILE_NAME = 'firsts.txt'
     FOLLOWS_FILE_NAME = 'follows.txt'
