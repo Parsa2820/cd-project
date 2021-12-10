@@ -5,8 +5,8 @@ Arian Yazdanparast - 98110095
 
 import os
 
-from parser.filewriter import ParserFileWriter
-from parser.parser import *
+from src.parser.filewriter import ParserFileWriter
+from src.parser.parser import *
 from scanner.scanner import Scanner
 from share.symboltable import SymbolTable
 
@@ -25,9 +25,12 @@ def run_parser():
     program = read_all_file(os.path.join(base_path, INPUT_FILE_NAME))
     symbol_table = SymbolTable()
     scanner = Scanner(program, symbol_table)
+
     parser = FileCfgParser(scanner, base_path)
     # parser = CMinusParser(scanner)
+
     tree, errors = parser.parse()
+
     file_writer = ParserFileWriter(tree, base_path, errors)
     file_writer.write()
 

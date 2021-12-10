@@ -1,8 +1,6 @@
-from parser.auxiliaryset import Follow, First
-from parser.cfgutils.fileconverter import FileConverter
-from parser.parsetree.parsetree import ParseTree, ParseTreeNode
-from parser.transitiondiagram import *
-from parser.cfgutils.converter import CfgToTransitionDiagramConverter
+
+from src.parser.cfgutils.fileconverter import FileConverter
+from src.parser.transitiondiagram import *
 
 
 class ParserBase:
@@ -16,7 +14,10 @@ class ParserBase:
     def parse(self):
         root = ParseTreeNode(self.start_symbol_name)
         parse_tree = ParseTree(root)
-        self.start_symbol_transition_diagram.parse(root)
+        try:
+            self.start_symbol_transition_diagram.parse(root)
+        except:
+            pass
         return parse_tree, TransitionDiagram.errors
 
 

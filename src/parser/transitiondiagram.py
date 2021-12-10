@@ -1,7 +1,7 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
-from parser.auxiliaryset import First, Follow
-from parser.parsetree.parsetree import ParseTree, ParseTreeNode
+from src.parser.auxiliaryset import First, Follow
+from src.parser.parsetree.parsetree import ParseTree, ParseTreeNode
 
 
 class TransitionDiagram:
@@ -25,6 +25,7 @@ class TransitionDiagram:
     def parse(self, parent: ParseTreeNode):
         current_state = self.init_state
         while not current_state.is_final:
+            print(self.name)
             current_state = current_state.transmit(
                 TransitionDiagram.current_token, parent)
         return True
@@ -39,10 +40,11 @@ class State:
     def transmit(self, token, parent):
         for transition in self.transitions:
             if transition.match_first(token) and transition.match(token, parent):
+                print(token , transition , TransitionDiagram.scanner.line_number)
                 return transition.destination_state
         transition = self.transitions[0]
         if self.__check_dollar(token):
-            return State(-1, [], True)
+            raise Exception('Unexpected EOF')
         TransitionDiagram.errors.append(transition.get_error_message(token))
         if transition.match_follow(token):
             return transition.destination_state
@@ -57,9 +59,10 @@ class State:
 
 
 class AbstractTransitionType:
+    error_line_number = -1
+
     def __init__(self, destination_state: State):
         self.destination_state = destination_state
-        self.error_line_number = -1
 
     def match(self, token, parent):
         pass
@@ -75,7 +78,7 @@ class AbstractTransitionType:
 
     def token_to_terminal(self, token):
         if token.type in [TokenType.SYMBOL, TokenType.KEYWORD]:
-            return token.value 
+            return token.value
         return token.type.name
 
 
@@ -100,8 +103,8 @@ class TerminalTransition(AbstractTransitionType):
 
     def match(self, token, parent):
         if not self.__token_equal_terminal(token):
-            self.error_line_number = TransitionDiagram.scanner.line_number
             return False
+        AbstractTransitionType.error_line_number = TransitionDiagram.scanner.line_number
         TransitionDiagram.update_current_token()
         node_value = str(token) if token.value != '$' else '$'
         parent.add_child(ParseTreeNode(node_value))
@@ -123,7 +126,7 @@ class TerminalTransition(AbstractTransitionType):
 
     def get_error_message(self, token):
         terminal = self.token_to_terminal(self.terminal)
-        return f'#{self.error_line_number} : syntax error, missing {terminal}'
+        return f'#{AbstractTransitionType.error_line_number} : syntax error, missing {terminal}'
 
 
 class NonTerminalTransition(AbstractTransitionType):
@@ -134,11 +137,10 @@ class NonTerminalTransition(AbstractTransitionType):
     def match(self, token, parent):
         current = ParseTreeNode(self.transition_diagram.name)
         current.parent = parent
+        parent.add_child(current)
         result = self.transition_diagram.parse(current)
         if result:
-            parent.add_child(current)
             return True
-        self.error_line_number = TransitionDiagram.scanner.line_number
         return False
 
     def match_first(self, token):
@@ -151,10 +153,11 @@ class NonTerminalTransition(AbstractTransitionType):
     def match_follow(self, token):
         if self.transition_diagram.follow.include(token):
             return True
-        TransitionDiagram.update_current_token()
         return False
 
     def get_error_message(self, token):
-        if self.match_follow(token):
-            return f'#{self.error_line_number} : syntax error, missing {self.transition_diagram.name}'
-        return f'#{self.error_line_number} : syntax error, illegal {self.token_to_terminal(token)}'
+        if self.match_follow(token) and not self.transition_diagram.first.has_epsilon:
+            return f'#{AbstractTransitionType.error_line_number} : syntax error, missing {self.transition_diagram.name}'
+        AbstractTransitionType.error_line_number = TransitionDiagram.scanner.line_number
+        TransitionDiagram.update_current_token()
+        return f'#{AbstractTransitionType.error_line_number} : syntax error, illegal {self.token_to_terminal(token)}'
