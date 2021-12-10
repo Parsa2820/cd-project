@@ -1,3 +1,8 @@
+'''
+Parsa Mohammadian - 98102284
+Arian Yazdanparast - 98110095
+'''
+
 import os
 
 from parser.filewriter import ParserFileWriter
