@@ -8,9 +8,10 @@ class ParserFileWriter:
     SYNTAX_ERRORS_FILE_NAME = 'syntax_errors.txt'
     NO_SYNTAX_ERRORS_MESSAGE = 'There is no syntax error.'
 
-    def __init__(self, parse_tree, base_path):
+    def __init__(self, parse_tree, base_path, syntax_errors):
         self.parse_tree = parse_tree
         self.base_path = base_path
+        self.syntax_errors = syntax_errors
 
     def write(self):
         self.__write_parse_tree()
@@ -27,10 +28,18 @@ class ParserFileWriter:
             parse_tree_file.write('\n')
 
     def __write_syntax_errors(self):
+        syntax_errors_lines = []
+        if len(self.syntax_errors) == 0:
+            syntax_errors_lines.append(
+                ParserFileWriter.NO_SYNTAX_ERRORS_MESSAGE)
+        else:
+            for error in self.syntax_errors:
+                syntax_errors_lines.append(error)
+
         path = self.__get_file_path(ParserFileWriter.SYNTAX_ERRORS_FILE_NAME)
-        with open(path, 'w', encoding='utf-8') as syntax_errors_file:
-            syntax_errors_file.write(self.NO_SYNTAX_ERRORS_MESSAGE)
-            syntax_errors_file.write('\n')
+        with open(path, 'w') as syntax_error_file:
+            syntax_error_file.write('\n'.join(syntax_errors_lines))
+            syntax_error_file.write('\n')
 
     def __get_file_path(self, file_name):
         return os.path.join(self.base_path, file_name)

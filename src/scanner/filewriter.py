@@ -15,6 +15,7 @@ class ScannerFileWriter:
         self.lexical_errors = []
         self.base_path = base_path
 
+
     def write(self):
         self.__write_tokens()
         self.__write_lexical_errors()

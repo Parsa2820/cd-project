@@ -27,8 +27,8 @@ def run_parser():
     scanner = Scanner(program, symbol_table)
     parser = FileCfgParser(scanner, base_path)
     # parser = CMinusParser(scanner)
-    tree = parser.parse()
-    file_writer = ParserFileWriter(tree, base_path)
+    tree, errors = parser.parse()
+    file_writer = ParserFileWriter(tree, base_path, errors)
     file_writer.write()
 
 

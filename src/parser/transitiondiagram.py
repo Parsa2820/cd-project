@@ -7,6 +7,7 @@ from parser.parsetree.parsetree import ParseTree, ParseTreeNode
 class TransitionDiagram:
     scanner: Scanner = None
     current_token: Token = None
+    errors = []
 
     def __init__(self, init_state, first: First, follow: Follow, name: str):
         self.init_state = init_state
@@ -39,9 +40,11 @@ class State:
         for transition in self.transitions:
             if transition.match_first(token) and transition.match(token, parent):
                 return transition.destination_state
-        # handle error when no transition matches
-        return State(-1, [], True)
-        raise Exception("No transition matches")
+        transition = self.transitions[0]
+        TransitionDiagram.errors.append(transition.get_error_message)
+        if transition.match_follow(token):
+            return transition.destination_state
+        return self
 
 
 class AbstractTransitionType:
@@ -54,6 +57,12 @@ class AbstractTransitionType:
     def match_first(self, token):
         pass
 
+    def match_follow(self, token):
+        pass
+
+    def get_error_message(self, token):
+        pass
+
 
 class EpsilonTransition(AbstractTransitionType):
     def match(self, token, parent):
@@ -64,6 +73,9 @@ class EpsilonTransition(AbstractTransitionType):
         # hesse khobi behesh nadarim
         # bayad epsilon akhar bashe dar barresi transionha
         return True
+
+    def match_follow(self, token):
+        return False
 
 
 class TerminalTransition(AbstractTransitionType):
@@ -89,6 +101,12 @@ class TerminalTransition(AbstractTransitionType):
                 return False
         return True
 
+    def match_follow(self, token):
+        return True
+
+    def get_error_message(self, token):
+        return f'#{TransitionDiagram.scanner.line_number} : syntax error missing {self.terminal.value}'
+
 
 class NonTerminalTransition(AbstractTransitionType):
     def __init__(self, destination_state: State, transition_diagram: TransitionDiagram):
@@ -110,3 +128,14 @@ class NonTerminalTransition(AbstractTransitionType):
         if self.transition_diagram.first.has_epsilon and self.transition_diagram.follow.include(token):
             return True
         return False
+
+    def match_follow(self, token):
+        if self.transition_diagram.follow.include(token):
+            return True
+        TransitionDiagram.update_current_token()
+        return False
+
+    def get_error_message(self, token):
+        if self.match_follow(token):
+            return f'#{TransitionDiagram.scanner.line_number} : syntax error missing {self.transition_diagram.name}'
+        return f'#{TransitionDiagram.scanner.line_number} : syntax error illegal {self.token.value}'

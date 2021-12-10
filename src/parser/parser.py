@@ -45,7 +45,7 @@ class ParserBase:
         parse_tree = ParseTree(root)
         self.start_symbol_transition_diagram.parse(root)
         parse_tree.root.add_child(ParseTreeNode('$'))
-        return parse_tree
+        return parse_tree, TransitionDiagram.errors
 
 
 class CMinusParser(ParserBase):
@@ -228,7 +228,7 @@ class SimpleArithmeticParser(ParserBase):
         super().__init__(scanner, self.__grammar_setter)
 
     def __grammar_setter(self):
-        d:TransitionDiagram = CfgToTransitionDiagramConverter('', '', '').get_grammar_diagram()
+        d: TransitionDiagram = CfgToTransitionDiagramConverter('', '', '').get_grammar_diagram()
         self.start_symbol_name = d.name
         self.start_symbol_transition_diagram = d
         return
@@ -277,7 +277,6 @@ class SimpleArithmeticParser(ParserBase):
         y.init_state = y0
         self.start_symbol_name = 'E'
         self.start_symbol_transition_diagram = e
-
 
 
 class FileCfgParser(ParserBase):
