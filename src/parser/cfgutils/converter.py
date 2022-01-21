@@ -45,6 +45,7 @@ class CfgToTransitionDiagramConverter:
         return [re.split(r'\s+', s) for s in single]
 
     def __get_number_of_states(self, rhs_list):
+        # TODO: Should not count action symbols
         x = 2
         for rhs in rhs_list:
             x += len(rhs) - 1
@@ -62,6 +63,7 @@ class CfgToTransitionDiagramConverter:
         raise Exception('Unknown terminal: ' + terminal)
 
     def __get_transition(self, diagram_next_state, symbol):
+        # TODO: Should handle action symbols
         if symbol == 'EPSILON':
             return EpsilonTransition(diagram_next_state)
         elif symbol in self.rules.keys():
@@ -94,6 +96,7 @@ class CfgToTransitionDiagramConverter:
             final_state = State(number_of_states-1, [], True)
             self.transition_diagrams_by_name[lhs].init_state = start_state
             for rhs in reversed(rhs_list):
+                # TODO: Should handle action symbols
                 diagram_next_state = final_state
                 for symbol in reversed(rhs[1:]):
                     diagram_next_state = self.__get_state(

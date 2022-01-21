@@ -60,9 +60,11 @@ class AbstractTransitionType:
     error_line_number = -1
 
     def __init__(self, destination_state: State):
+        # TODO: Add field for semantic action method
         self.destination_state = destination_state
 
     def match(self, token, parent):
+        # TODO: Call semantic action method
         pass
 
     def match_first(self, token):
