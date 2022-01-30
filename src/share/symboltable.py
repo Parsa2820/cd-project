@@ -28,3 +28,4 @@ class SymbolTable:
     def __str__(self):
         symbols_str = [f'{symbol}' for symbol in self.symbol_table.values()]
         return '\n'.join(symbols_str)
+
