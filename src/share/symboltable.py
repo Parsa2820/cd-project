@@ -29,3 +29,5 @@ class SymbolTable:
         symbols_str = [f'{symbol}' for symbol in self.symbol_table.values()]
         return '\n'.join(symbols_str)
 
+    def get_symbol(self, lexeme):
+        return self.symbol_table[lexeme]

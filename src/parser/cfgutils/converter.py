@@ -2,6 +2,7 @@ import re
 from parser.auxiliaryset import First, Follow
 from parser.transitiondiagram import EpsilonTransition, NonTerminalTransition, State, TerminalTransition, TransitionDiagram
 from share.token import Token, TokenType
+from intercode.codegen import CodeGenerator
 
 
 class CfgToTransitionDiagramConverter:
@@ -45,10 +46,9 @@ class CfgToTransitionDiagramConverter:
         return [re.split(r'\s+', s) for s in single]
 
     def __get_number_of_states(self, rhs_list):
-        # TODO: Should not count action symbols
         x = 2
         for rhs in rhs_list:
-            x += len(rhs) - 1
+            x += len([item for item in rhs if not self.__is_action_symbol(item)]) - 1
         return x
 
     def __terminal_to_token(self, terminal):
@@ -63,7 +63,6 @@ class CfgToTransitionDiagramConverter:
         raise Exception('Unknown terminal: ' + terminal)
 
     def __get_transition(self, diagram_next_state, symbol):
-        # TODO: Should handle action symbols
         if symbol == 'EPSILON':
             return EpsilonTransition(diagram_next_state)
         elif symbol in self.rules.keys():
@@ -89,6 +88,9 @@ class CfgToTransitionDiagramConverter:
             if self.start_symbol is None:
                 self.start_symbol = lhs
 
+    def __is_action_symbol(self, symbol):
+        return symbol.startswith('#')
+
     def get_grammar_diagram(self):
         for lhs, rhs_list in self.rules.items():
             number_of_states = self.__get_number_of_states(rhs_list)
@@ -96,12 +98,17 @@ class CfgToTransitionDiagramConverter:
             final_state = State(number_of_states-1, [], True)
             self.transition_diagrams_by_name[lhs].init_state = start_state
             for rhs in reversed(rhs_list):
-                # TODO: Should handle action symbols
                 diagram_next_state = final_state
-                for symbol in reversed(rhs[1:]):
-                    diagram_next_state = self.__get_state(
-                        diagram_next_state, symbol)
-                start_state.transitions.insert(
-                    0, self.__get_transition(diagram_next_state, rhs[0]))
+                starts_with_action_symbol = self.__is_action_symbol(rhs[0])
+                first_non_action_symbol_index = 1 if starts_with_action_symbol else 0
+                for symbol in reversed(rhs[first_non_action_symbol_index+1:]):
+                    if self.__is_action_symbol(symbol):
+                        diagram_next_state.transitions[0].semantic_action = CodeGenerator.get_semantic_action(symbol)
+                        continue
+                    diagram_next_state = self.__get_state(diagram_next_state, symbol)
+                start_state_transition = self.__get_transition(diagram_next_state, rhs[first_non_action_symbol_index])
+                if starts_with_action_symbol:
+                    start_state_transition.semantic_action = CodeGenerator.get_semantic_action(rhs[0])
+                start_state.transitions.insert(0, start_state_transition)
 
         return self.transition_diagrams_by_name[self.start_symbol]
