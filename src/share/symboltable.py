@@ -31,3 +31,7 @@ class SymbolTable:
 
     def get_symbol(self, lexeme):
         return self.symbol_table[lexeme]
+
+    def delete_scope(self, scope):
+        for symbol in self.symbol_table.values():
+            symbol.delete_from_scope(scope)
