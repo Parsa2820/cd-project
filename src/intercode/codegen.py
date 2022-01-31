@@ -1,3 +1,4 @@
+from ast import increment_lineno
 from scope import Scope
 from share.symbol import VarDetails, FunctionDetails
 from intercode.programblock import ProgramBlock, ThreeAddressCode
@@ -51,9 +52,14 @@ class CodeGenerator:
         type = CodeGenerator.semantic_stack.pop()
         functionDetails = FunctionDetails(type)
         functionDetails.add_to_scope(CodeGenerator.scope)
+        CodeGenerator.semantic_stack.append(symbol)
+        CodeGenerator.semantic_stack.append(0)
 
+        
 
-    def countParams(token, symbol_table):
+    def lastParams(token, symbol_table):
+        CodeGenerator.incrementParamCounter(token, symbol_table)
+        
         pass
 
     def pushIdTypeInt(token, symbol_table):
@@ -68,6 +74,11 @@ class CodeGenerator:
         
 
     def incrementParamCounter(token, symbol_table):
+        param_id = CodeGenerator.semantic_stack.pop()
+        param_type = CodeGenerator.semantic_stack.pop()
+        count = CodeGenerator.semantic_stack.pop()
+        function_symbol = CodeGenerator.semantic_stack.pop()
+        function_symbol.functionDetails.add_param()
         pass
 
     def paramArr(token, symbol_table):

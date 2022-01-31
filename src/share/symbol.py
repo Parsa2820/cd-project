@@ -23,8 +23,12 @@ class SymbolDetails:
 class FunctionDetails(SymbolDetails):
     def __init__(self, return_type):
         self.return_type = return_type
-        self.params_count = None
-        self.params_types = None
+        self.params_count = 0
+        self.param = []
+
+    def add_param(self, param_type, param_id):
+        self.param.append((param_type, param_id))
+        self.params_count += 1
 
 
 class VarDetails(SymbolDetails):
