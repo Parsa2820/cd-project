@@ -21,9 +21,10 @@ class SymbolDetails:
         self.address_by_scope.pop(scope)
 
 class FunctionDetails(SymbolDetails):
-    def __init__(self, params_count, params_types):
-        self.params_count = params_count
-        self.params_types = params_types
+    def __init__(self, return_type):
+        self.return_type = return_type
+        self.params_count = None
+        self.params_types = None
 
 
 class VarDetails(SymbolDetails):

@@ -1,6 +1,6 @@
 from scope import Scope
-from share.symbol import VarDetails
-
+from share.symbol import VarDetails, FunctionDetails
+from intercode.programblock import ProgramBlock, ThreeAddressCode
 
 class CodeGenerator:
     
@@ -47,8 +47,11 @@ class CodeGenerator:
             pass
 
     def funDef(token, symbol_table):
+        symbol = CodeGenerator.semantic_stack.pop()
+        type = CodeGenerator.semantic_stack.pop()
+        functionDetails = FunctionDetails(type)
+        functionDetails.add_to_scope(CodeGenerator.scope)
 
-        pass
 
     def countParams(token, symbol_table):
         pass
