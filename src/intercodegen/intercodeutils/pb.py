@@ -16,7 +16,7 @@ class ProgramBlock:
         self.set(self.last, threeAddressCode)
         self.increment()
 
-    def get_current(self):
+    def get_current_address(self):
         return self.last
 
     def __str__(self):

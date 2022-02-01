@@ -86,22 +86,36 @@ class CodeGenerator:
         pass
 
     def saveEmptyAddr(token):
-        pass
+        empty_address = CodeGenerator.program_block.get_current_address()
+        CodeGenerator.program_block.set_current_and_increment(None)
+        CodeGenerator.semantic_stack.append(empty_address)
 
     def writeJmpFalseSavedAddr(token):
-        pass
+        predicate = CodeGenerator.semantic_stack.pop()
+        saved_address = CodeGenerator.semantic_stack.pop()
+        current_address = CodeGenerator.program_block.get_current_address()
+        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address)
+        CodeGenerator.program_block.set(saved_address, tac)
 
     def writeJmpFalseSavedAddrSaveEmptyAddr(token):
-        pass
+        CodeGenerator.writeJmpFalseSavedAddr(token)
+        CodeGenerator.saveEmptyAddr(token)
 
     def writeJmpSavedAddr(token):
-        pass
+        saved_address = CodeGenerator.semantic_stack.pop()
+        current_address = CodeGenerator.program_block.get_current_address()
+        tac = ThreeAddressCode(Instruction.JP, current_address)
+        CodeGenerator.program_block.set(saved_address, tac)
 
     def saveAddr(token):
-        pass
+        address = CodeGenerator.program_block.get_current_address()
+        CodeGenerator.semantic_stack.append(address)
 
     def jmpFalseSavedAddr(token):
-        pass
+        predicate = CodeGenerator.semantic_stack.pop()
+        address = CodeGenerator.semantic_stack.pop()
+        tac = ThreeAddressCode(Instruction.JPF, predicate, address)
+        CodeGenerator.program_block.set_current_and_increment(tac)
 
     def returnVoid(token):
         pass
@@ -110,7 +124,10 @@ class CodeGenerator:
         pass
 
     def assign(token):
-        pass
+        rhs = CodeGenerator.semantic_stack.pop()
+        lhs = CodeGenerator.semantic_stack.pop()
+        tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
+        CodeGenerator.program_block.set_current_and_increment(tac)
 
     def arrayIndex(token):
         pass
