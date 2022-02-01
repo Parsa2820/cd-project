@@ -1,16 +1,18 @@
-from ast import increment_lineno
+from symtable import SymbolTable
 from scope import Scope
 from share.symbol import VarDetails, FunctionDetails
 from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.intercodeutils.tac import *
+from intercodegen.memman import MemoryManager
 
 
 class CodeGenerator:
 
     semantic_stack = []
     size_by_type = {'int': 4, 'void': 0}
-    symbol_table = None
+    symbol_table: SymbolTable = None
     program_block: ProgramBlock = None
+    memory_manager: MemoryManager = None
     address = 0
 
     scope = Scope()
@@ -23,7 +25,7 @@ class CodeGenerator:
             raise Exception(f'Semantic action {action_symbol} not found.')
 
     def pushIdDec(token):
-        symbol = symbol_table.get_symbol(token.value)
+        symbol = CodeGenerator.symbol_table.get_symbol(token.value)
         CodeGenerator.semantic_stack.append(symbol)
 
     def single(token):
@@ -82,6 +84,9 @@ class CodeGenerator:
     def paramArr(token):
         pass
 
+    def funEnd(token):
+        pass
+
     def breakLoop(token):
         pass
 
@@ -136,7 +141,7 @@ class CodeGenerator:
         second_operand = CodeGenerator.semantic_stack.pop()
         instruction = CodeGenerator.semantic_stack.pop()
         first_operand = CodeGenerator.semantic_stack.pop()
-        result_tmp = get_tmp()
+        result_tmp = CodeGenerator.memory_manager.get_tmp()
         tac = ThreeAddressCode(instruction, first_operand,
                                second_operand, result_tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
@@ -172,7 +177,3 @@ class CodeGenerator:
 
     def call(token):
         pass
-
-
-def get_tmp():
-    raise NotImplementedError
