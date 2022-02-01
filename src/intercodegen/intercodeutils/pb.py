@@ -1,9 +1,4 @@
-class ThreeAddressCode:
-    def __init__(self, op, addr1, addr2, addr3):
-        self.op = op
-        self.addr1 = addr1
-        self.addr2 = addr2
-        self.addr3 = addr3
+from intercodegen.intercodeutils.tac import ThreeAddressCode
 
 
 class ProgramBlock:
@@ -17,5 +12,12 @@ class ProgramBlock:
     def increment(self):
         self.last += 1
 
+    def set_current_and_increment(self, threeAddressCode):
+        self.set(self.last, threeAddressCode)
+        self.increment()
+
     def get_current(self):
         return self.last
+
+    def __str__(self):
+        return '\n'.join([f'{ln}\t{tac}' for ln, tac in enumerate(self.program_block)])

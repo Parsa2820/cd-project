@@ -2,7 +2,7 @@ import re
 from parser.auxiliaryset import First, Follow
 from parser.transitiondiagram import EpsilonTransition, NonTerminalTransition, State, TerminalTransition, TransitionDiagram
 from share.token import Token, TokenType
-from intercode.codegen import CodeGenerator
+from intercodegen.codegen import CodeGenerator
 
 
 class CfgToTransitionDiagramConverter:
