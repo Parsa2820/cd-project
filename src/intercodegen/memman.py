@@ -12,9 +12,9 @@ class MemoryManager:
         self.scope_size_stack = []
         self.return_address = []
 
-    def get_address(self, type='int'):
+    def get_address(self, type='int', size = 1):
         address = self.address + self.offset
-        self.offset += MemoryManager.SIZE_BY_TYPE[type]
+        self.offset += MemoryManager.SIZE_BY_TYPE[type] * size
         return address
 
     def add_scope(self):

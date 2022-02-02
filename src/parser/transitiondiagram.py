@@ -61,10 +61,9 @@ class AbstractTransitionType:
 
     def __init__(self, destination_state: State):
         self.destination_state = destination_state
-        self.semantic_action = None
+        self.semantic_action = lambda x: None
 
     def match(self, token, parent):
-        # TODO: Call semantic action method
         pass
 
     def match_first(self, token):
@@ -106,6 +105,7 @@ class TerminalTransition(AbstractTransitionType):
         AbstractTransitionType.error_line_number = TransitionDiagram.scanner.line_number
         node_value = str(token) if token.value != '$' else '$'
         parent.add_child(ParseTreeNode(node_value))
+        self.semantic_action(token)
         return True
 
     def match_first(self, token):
@@ -138,6 +138,7 @@ class NonTerminalTransition(AbstractTransitionType):
         parent.add_child(current)
         result = self.transition_diagram.parse(current)
         if result:
+            self.semantic_action(token)
             return True
         return False
 
