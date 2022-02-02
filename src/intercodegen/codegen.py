@@ -1,5 +1,4 @@
 from symtable import Symbol, SymbolTable
-from scope import Scope
 from share.symbol import VarDetails, FunctionDetails
 from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.intercodeutils.tac import *
@@ -18,8 +17,7 @@ class CodeGenerator:
     address = 0
     fun_id: Symbol = None
 
-    scope = Scope()
-
+    
     def get_semantic_action(action_symbol):
         action_symbol = action_symbol[1:]
         try:
@@ -35,33 +33,36 @@ class CodeGenerator:
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         varDetails = VarDetails(type)
-        varDetails.add_to_scope(
-            CodeGenerator.scope.scope, CodeGenerator.address)
-        symbol.set_detail(varDetails)
+        addr = 0
         if type == 'int':
-            CodeGenerator.address += CodeGenerator.size_by_type[type]
+            addr = CodeGenerator.memory_manager.get_address('int')
         else:
             # TODO: this is error, single should not be void
             pass
+        varDetails.add_to_scope(
+            CodeGenerator.memory_manager.scope, addr)
+        symbol.set_detail(varDetails)
+        
 
     def array(token):
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         varDetails = VarDetails(type)
-        varDetails.add_to_scope(
-            CodeGenerator.scope.scope, CodeGenerator.address)
         symbol.set_detail(varDetails)
+        addr = 0
         if type == 'int':
-            CodeGenerator.address += CodeGenerator.size_by_type[type] * token.value
+            addr = CodeGenerator.memory_manager.get_address('int', token.value)
         else:
             # TODO: this is error, array should not be void
             pass
+        varDetails.add_to_scope(
+            CodeGenerator.memory_manager.scope, addr)
 
     def funDef(token):
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         functionDetails = FunctionDetails(type)
-        functionDetails.add_to_scope(CodeGenerator.scope)
+        functionDetails.add_to_scope(CodeGenerator.memory_manager)
         CodeGenerator.semantic_stack.append(symbol)
         CodeGenerator.semantic_stack.append(0)
 
