@@ -42,8 +42,5 @@ def run_parser():
     file_writer.write()
 
 
-
 if __name__ == '__main__':
     run_parser()
-    x = CodeGenerator.get_semantic_action('#salam')
-    x()

@@ -59,7 +59,8 @@ class CodeGenerator:
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         functionDetails = FunctionDetails(type)
-        functionDetails.add_to_scope(CodeGenerator.memory_manager.scope, CodeGenerator.memory_manager.get_address())
+        functionDetails.add_to_scope(
+            CodeGenerator.memory_manager.scope, CodeGenerator.memory_manager.get_address())
         symbol.detail = functionDetails
         CodeGenerator.semantic_stack.append(symbol)
 
@@ -247,8 +248,3 @@ class CodeGenerator:
         CodeGenerator.program_block.set_current_and_increment(tac)
         ret_addr = CodeGenerator.program_block.get_current_address()
         CodeGenerator.memory_manager.add_return_address(ret_addr)
-
-    def salam():
-        print('salam')
-
-
