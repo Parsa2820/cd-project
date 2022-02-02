@@ -9,6 +9,7 @@ from intercodegen.memman import MemoryManager
 class CodeGenerator:
 
     semantic_stack = []
+    break_stacks = []
     size_by_type = {'int': 4, 'void': 0}
     symbol_table: SymbolTable = None
     program_block: ProgramBlock = None
@@ -88,7 +89,9 @@ class CodeGenerator:
         pass
 
     def breakLoop(token):
-        pass
+        empty_address = CodeGenerator.program_block.get_current_address()
+        CodeGenerator.program_block.set_current_and_increment(None)
+        CodeGenerator.break_stacks[-1].append(empty_address)
 
     def saveEmptyAddr(token):
         empty_address = CodeGenerator.program_block.get_current_address()
@@ -112,15 +115,20 @@ class CodeGenerator:
         tac = ThreeAddressCode(Instruction.JP, current_address)
         CodeGenerator.program_block.set(saved_address, tac)
 
-    def saveAddr(token):
+    def saveAddrLoop(token):
         address = CodeGenerator.program_block.get_current_address()
         CodeGenerator.semantic_stack.append(address)
+        CodeGenerator.break_stacks.append([])
 
-    def jmpFalseSavedAddr(token):
+    def jmpFalseSavedAddrLoop(token):
         predicate = CodeGenerator.semantic_stack.pop()
         address = CodeGenerator.semantic_stack.pop()
         tac = ThreeAddressCode(Instruction.JPF, predicate, address)
         CodeGenerator.program_block.set_current_and_increment(tac)
+        current_address = CodeGenerator.program_block.get_current_address()
+        break_tac = ThreeAddressCode(Instruction.JP, current_address)
+        for break_address in CodeGenerator.break_stacks[-1]:
+            CodeGenerator.program_block.set(break_address, break_tac)
 
     def returnVoid(token):
         pass
