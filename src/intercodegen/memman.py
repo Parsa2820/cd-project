@@ -1,3 +1,6 @@
+from intercodegen.scope import Scope
+
+
 class MemoryManager:
     DATA_START_ADDRESS = 500
     SIZE_BY_TYPE = {'int': 4, 'void': 0}
@@ -7,6 +10,7 @@ class MemoryManager:
         self.offset = 0
         self.scope = 0
         self.scope_size_stack = []
+        self.return_address = []
 
     def get_address(self, type='int'):
         address = self.address + self.offset
@@ -23,6 +27,9 @@ class MemoryManager:
         self.offset = self.scope_size_stack.pop()
         self.address -= self.offset
         self.scope -= 1
+    
+    def add_return_address(self, return_address):
+        self.return_address_by_scope.append(return_address)
 
         
 
