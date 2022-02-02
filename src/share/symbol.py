@@ -2,10 +2,13 @@ class Symbol:
     def __init__(self, id, name):
         self.id = id
         self.name = name
-        self.details = {}
+        self.detail = None
 
     def __str__(self):
         return f'{self.id}.\t{self.name}'
+
+    def set_detail(self, symbol_detail):
+        self.detail = symbol_detail
 
 
 
@@ -34,3 +37,5 @@ class FunctionDetails(SymbolDetails):
 class VarDetails(SymbolDetails):
     def __init__(self, type):
         self.type = type
+        
+
