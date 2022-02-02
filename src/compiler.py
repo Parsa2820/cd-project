@@ -9,6 +9,7 @@ from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.memman import MemoryManager
 
 from intercodegen.filewriter import CodeGeneratorFileWriter
+from parser.filewriter import ParserFileWriter
 from parser.parser import *
 from scanner.scanner import Scanner
 from share.symboltable import SymbolTable
@@ -32,8 +33,11 @@ def run_parser():
     CodeGenerator.memory_manager = MemoryManager()
     pb = ProgramBlock()
     CodeGenerator.program_block = pb
+    CodeGenerator.symbol_table = symbol_table
     parser = FileCfgParser(scanner, base_path)
     tree, errors = parser.parse()
+    parser_file_writer = ParserFileWriter(tree, base_path, errors)
+    parser_file_writer.write()
     file_writer = CodeGeneratorFileWriter(pb, base_path, [])
     file_writer.write()
 
@@ -41,3 +45,5 @@ def run_parser():
 
 if __name__ == '__main__':
     run_parser()
+    x = CodeGenerator.get_semantic_action('#salam')
+    x()

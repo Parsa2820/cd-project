@@ -5,9 +5,8 @@ from intercodegen.intercodeutils.tac import *
 from intercodegen.memman import MemoryManager
 
 
-
 class CodeGenerator:
-    
+
     semantic_stack = []
     break_stacks = []
     size_by_type = {'int': 4, 'void': 0}
@@ -17,7 +16,6 @@ class CodeGenerator:
     address = 0
     fun_id: Symbol = None
 
-    
     def get_semantic_action(action_symbol):
         action_symbol = action_symbol[1:]
         try:
@@ -42,7 +40,6 @@ class CodeGenerator:
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.scope, addr)
         symbol.set_detail(varDetails)
-        
 
     def array(token):
         symbol = CodeGenerator.semantic_stack.pop()
@@ -62,14 +59,14 @@ class CodeGenerator:
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         functionDetails = FunctionDetails(type)
-        functionDetails.add_to_scope(CodeGenerator.memory_manager)
+        functionDetails.add_to_scope(CodeGenerator.memory_manager.scope, CodeGenerator.memory_manager.get_address())
+        symbol.detail = functionDetails
         CodeGenerator.semantic_stack.append(symbol)
-        CodeGenerator.semantic_stack.append(0)
 
     def lastParam(token):
         CodeGenerator.incrementParamCounter(token)
         pb_addr = CodeGenerator.program_block.get_current_address()
-        add1 = ImmediateAddress(pb_addr + 1) #+1 for assign instruction
+        add1 = ImmediateAddress(pb_addr + 1)  # +1 for assign instruction
         add2 = DirectAddress(CodeGenerator.address)
         tac = ThreeAddressCode(Instruction.ASSIGN, add1, add2)
         CodeGenerator.program_block.set_current_and_increment(tac)
@@ -85,17 +82,15 @@ class CodeGenerator:
         param_id = CodeGenerator.semantic_stack.pop()
         param_type = CodeGenerator.semantic_stack.pop()
         function_symbol = CodeGenerator.semantic_stack.pop()
-        function_symbol.functionDetails.add_param((param_type, param_id))
+        function_symbol.detail.add_param(param_type, param_id)
         CodeGenerator.semantic_stack.append(function_symbol)
-        
 
     def paramArr(token):
         symbol = CodeGenerator.semantic_stack.pop()
         CodeGenerator.semantic_stack.append('arr')
         CodeGenerator.semantic_stack.append(symbol)
-        
 
-    def funEnd(token):        
+    def funEnd(token):
         pass
 
     def breakLoop(token):
@@ -141,22 +136,20 @@ class CodeGenerator:
             CodeGenerator.program_block.set(break_address, break_tac)
 
     def returnVoid(token, ):
-        rhs = CodeGenerator.memory_manager.return_address_by_scope[-1]  
+        rhs = CodeGenerator.memory_manager.return_address_by_scope[-1]
         lhs = 0
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
         CodeGenerator.program_block.set_current_and_increment(tac)
         tac = ThreeAddressCode(Instruction.JP, 0,)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        
 
     def returnNonVoid(token, ):
-        rhs = CodeGenerator.memory_manager.return_address_by_scope[-1]  
+        rhs = CodeGenerator.memory_manager.return_address_by_scope[-1]
         lhs = 0
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
         CodeGenerator.program_block.set_current_and_increment(tac)
         tac = ThreeAddressCode(Instruction.JP, 0,)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        
 
     def assign(token):
         rhs = CodeGenerator.semantic_stack.pop()
@@ -171,7 +164,7 @@ class CodeGenerator:
         second_operand = CodeGenerator.semantic_stack.pop()
         instruction = CodeGenerator.semantic_stack.pop()
         first_operand = CodeGenerator.semantic_stack.pop()
-        result_tmp = CodeGenerator.memory_manager.get_tmp()
+        result_tmp = CodeGenerator.memory_manager.get_address()
         tac = ThreeAddressCode(instruction, first_operand,
                                second_operand, result_tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
@@ -205,13 +198,14 @@ class CodeGenerator:
     def pushNum(token):
         CodeGenerator.semantic_stack.append(ImmediateAddress(token.value))
 
-    def pushID(token):
-        symbol = CodeGenerator.symbol_table.get_symbols(token.value)
+    def pushId(token):
+        symbol = CodeGenerator.symbol_table.get_symbol(token.value)
         global_scope = 0
         symbol_address = 0
-        if CodeGenerator.memory_manager.scope in symbol.details:
-            symbol_address =  symbol.details[CodeGenerator.memory_manager.scope]
-        else: symbol_address = symbol.details[global_scope]
+        if CodeGenerator.memory_manager.scope in symbol.detail.address_by_scope:
+            symbol_address = symbol.detail.address_by_scope[CodeGenerator.memory_manager.scope]
+        else:
+            symbol_address = symbol.detail.address_by_scope[global_scope]
         # TODO id not found semantic error should be implemented
         CodeGenerator.semantic_stack.append(symbol_address)
         CodeGenerator.fun_id = symbol
@@ -220,37 +214,41 @@ class CodeGenerator:
         CodeGenerator.memory_manager.add_scope()
         param_count = CodeGenerator.fun_id.details.params_count()
         arg_val_list = []
-        for i in range(0,param_count):
+        for i in range(0, param_count):
             arg_val = CodeGenerator.semantic_stack.pop()
             arg_val_list.append(arg_val)
         arg_val_list.reverse()
         CodeGenerator.define_params(CodeGenerator.fun_id, arg_val_list)
         CodeGenerator.set_pb_pointer(CodeGenerator.fun_id)
-        
-    
+
     def define_params(func: Symbol, values):
         for index, param in enumerate(func.details.param):
             # TODO check param and input type
             curr_address = CodeGenerator.memory_manager.get_address('int')
             if param[0] == 'int':
                 rhs = DirectAddress(values[index])
-            else:  rhs = ImmediateAddress(values[index])
+            else:
+                rhs = ImmediateAddress(values[index])
             lhs = DirectAddress(curr_address)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
-            CodeGenerator.add_address_to_symbol(param[1], CodeGenerator.memory_manager.scope, curr_address)
-        
+            CodeGenerator.add_address_to_symbol(
+                param[1], CodeGenerator.memory_manager.scope, curr_address)
 
     def add_address_to_symbol(symbol: Symbol, scope, adrress):
         if symbol.detail is None:
             symbol.set_detail(VarDetails('int'))
         symbol.detail.add_to_scope(scope, adrress)
-    
+
     def set_pb_pointer(func: Symbol):
         func_address = func.details.address_by_scope[0][1]
         rhs = IndirectAddress(func_address)
         tac = ThreeAddressCode(Instruction.JP, rhs,)
         CodeGenerator.program_block.set_current_and_increment(tac)
         ret_addr = CodeGenerator.program_block.get_current_address()
-        CodeGenerator.memory_manager.add_return_address(ret_addr) 
-            
+        CodeGenerator.memory_manager.add_return_address(ret_addr)
+
+    def salam():
+        print('salam')
+
+

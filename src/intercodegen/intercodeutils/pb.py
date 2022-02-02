@@ -13,6 +13,7 @@ class ProgramBlock:
         self.last += 1
 
     def set_current_and_increment(self, threeAddressCode):
+        self.program_block.append(None)
         self.set(self.last, threeAddressCode)
         self.increment()
 

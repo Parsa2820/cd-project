@@ -16,8 +16,11 @@ class ParserBase:
         parse_tree = ParseTree(root)
         try:
             self.start_symbol_transition_diagram.parse(root)
-        except:
-            pass
+        except Exception as e:
+            if e.args[0] == 'Unexpected EOF':
+                pass
+            else:
+                raise e
         return parse_tree, TransitionDiagram.errors
 
 

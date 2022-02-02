@@ -29,7 +29,6 @@ class TransitionDiagram:
                 TransitionDiagram.current_token, parent)
         return True
 
-
 class State:
     def __init__(self, number, transitions, is_final=False):
         self.number = number
