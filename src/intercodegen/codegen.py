@@ -73,7 +73,7 @@ class CodeGenerator:
         symbol.set_detail(varDetails)
         addr = 0
         if type == 'int':
-            addr = CodeGenerator.memory_manager.get_address('int', token.value)
+            addr = CodeGenerator.memory_manager.get_address(size=int(token.value))
         else:
             # TODO: this is error, array should not be void
             pass
@@ -209,7 +209,16 @@ class CodeGenerator:
         CodeGenerator.semantic_stack.append(rhs)
 
     def arrayIndex(token):
-        pass
+        expression_address = CodeGenerator.semantic_stack.pop()
+        symbol_address = CodeGenerator.semantic_stack.pop()
+        op1 = ImmediateAddress(RegisterConstants.BYTE_SIZE)
+        op2 = DirectAddress(expression_address)
+        tac = ThreeAddressCode(Instruction.MULT, op1, op2, op2)
+        CodeGenerator.program_block.set_current_and_increment(tac)
+        op1 = ImmediateAddress(symbol_address)
+        tac = ThreeAddressCode(Instruction.ADD, op1, op2, op2)
+        CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.semantic_stack.append(IndirectAddress(expression_address))
 
     def apply():
         second_operand = CodeGenerator.semantic_stack.pop()
@@ -247,12 +256,14 @@ class CodeGenerator:
         CodeGenerator.apply()
 
     def pushNum(token):
-        CodeGenerator.semantic_stack.append(ImmediateAddress(token.value))
+        tmp = CodeGenerator.memory_manager.get_address()
+        tac = ThreeAddressCode(Instruction.ASSIGN, ImmediateAddress(token.value), DirectAddress(tmp))
+        CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.semantic_stack.append(tmp)
 
     def pushId(token):
         symbol = CodeGenerator.symbol_table.get_symbol(token.value)
         global_scope = 0
-        symbol_address = 0
         if CodeGenerator.memory_manager.current_function_record_id in symbol.detail.address_by_scope:
             symbol_address = symbol.detail.address_by_scope[
                 CodeGenerator.memory_manager.current_function_record_id]
