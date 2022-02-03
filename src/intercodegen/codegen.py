@@ -213,12 +213,13 @@ class CodeGenerator:
         symbol_address = CodeGenerator.semantic_stack.pop()
         op1 = ImmediateAddress(RegisterConstants.BYTE_SIZE)
         op2 = DirectAddress(expression_address)
-        tac = ThreeAddressCode(Instruction.MULT, op1, op2, op2)
+        op3 = DirectAddress(CodeGenerator.memory_manager.get_address())
+        tac = ThreeAddressCode(Instruction.MULT, op1, op2, op3)
         CodeGenerator.program_block.set_current_and_increment(tac)
         op1 = ImmediateAddress(symbol_address)
-        tac = ThreeAddressCode(Instruction.ADD, op1, op2, op2)
+        tac = ThreeAddressCode(Instruction.ADD, op1, op3, op3)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        CodeGenerator.semantic_stack.append(IndirectAddress(expression_address))
+        CodeGenerator.semantic_stack.append(IndirectAddress(op3))
 
     def apply():
         second_operand = CodeGenerator.semantic_stack.pop()
