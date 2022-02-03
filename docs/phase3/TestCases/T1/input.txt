@@ -1,19 +1,18 @@
 /*===== Sample 1 =====*/
 int foo(int x){
-	int a;
 	if (x < 0){
-		a = output(x);
+		output(x);
 		return 1;
 	}
 	else {
-		a = output(x);
+		output(x);
 		return x + 2;
 	} endif
 }
 void main(void){
 	int i;	
 	i= foo(0);
-	i = output(i);
+	output(i);
 	i=foo(10);
-	i = output(i);
+	output(i);
 }

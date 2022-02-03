@@ -13,7 +13,7 @@ Param-prime -> #paramArr [  ] | EPSILON
 Compound-stmt -> { Declaration-list Statement-list }
 Statement-list -> Statement Statement-list | EPSILON
 Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt
-Expression-stmt -> Expression ; | #breakLoop break ; | ;
+Expression-stmt -> Expression #popExp ; | #breakLoop break ; | ;
 Selection-stmt -> if ( Expression #saveEmptyAddr ) Statement Else-stmt
 Else-stmt -> #writeJmpFalseSavedAddr endif | #writeJmpFalseSavedAddrSaveEmptyAddr else Statement #writeJmpSavedAddr endif
 Iteration-stmt -> #saveAddrLoop repeat Statement until ( Expression #jmpFalseSavedAddrLoop )

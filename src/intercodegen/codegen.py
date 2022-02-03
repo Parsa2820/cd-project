@@ -277,8 +277,7 @@ class CodeGenerator:
         tac = ThreeAddressCode(
             Instruction.ASSIGN, CodeGenerator.RETURN_VALUE_ADDRESS, tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        if CodeGenerator.fun_symbol.detail.return_type != 'void':
-            CodeGenerator.semantic_stack.append(tmp)
+        CodeGenerator.semantic_stack.append(tmp)
         CodeGenerator.__pop_after_call(token)
 
     def __set_params(func: Symbol, values):
@@ -332,3 +331,6 @@ class CodeGenerator:
         CodeGenerator.program_block.pop_from_runtime_stack(direct_return_address)
         start_addr, size = CodeGenerator.__get_start_addr_and_size()
         CodeGenerator.program_block.bulk_pop_direct(start_addr, size)
+
+    def popExp(token):
+        CodeGenerator.semantic_stack.pop()
