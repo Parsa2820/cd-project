@@ -1,12 +1,16 @@
+from intercodegen.intercodeutils.tac import IndirectAddress, Instruction, ThreeAddressCode
+from intercodegen.intercodeutils.regcon import RegisterConstants
+
+
 class MemoryManager:
-    DATA_START_ADDRESS = 500
     SIZE_BY_TYPE = {'int': 4, 'void': 0}
 
     def __init__(self):
-        self.address = MemoryManager.DATA_START_ADDRESS
+        self.address = RegisterConstants.DATA_START
         # self.offset = 0
         self.current_function_record_id = 0
         self.last_function_record_id = 0
+        
         # self.scope_size_stack = []
         # self.return_address = []
 
@@ -25,5 +29,8 @@ class MemoryManager:
         self.current_function_record_id = 0
 
 
+
     # def add_return_address(self, return_address):
     #     self.return_address_by_scope.append(return_address)
+
+    

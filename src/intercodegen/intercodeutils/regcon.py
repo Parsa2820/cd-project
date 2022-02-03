@@ -1,0 +1,10 @@
+class RegisterConstants:
+    RETURN_ADDRESS = 1000
+    RETURN_VALUE = 1004
+    STACK_POINTER = 1008
+    STACK_START = 0
+    DATA_START = 500
+    BYTE_SIZE = 4
+    STACK_POINTER_INIT = 0
+    MAIN_JP = 1
+    PB_START = 2

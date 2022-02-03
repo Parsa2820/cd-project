@@ -1,3 +1,4 @@
+from intercodegen.intercodeutils.regcon import RegisterConstants
 from share.symbol import Symbol, VarDetails, FunctionDetails
 from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.intercodeutils.tac import *
@@ -8,10 +9,8 @@ from share.token import Token, TokenType
 
 class CodeGenerator:
 
-    return_addresses = {}
-    RETURN_VALUE_ADDRESSES = {}
-    return_address = IndirectAddress(1000)
-    return_value_address = DirectAddress(1100)
+    RETURN_ADDRESS = IndirectAddress(RegisterConstants.RETURN_ADDRESS)
+    RETURN_VALUE_ADDRESS = DirectAddress(RegisterConstants.RETURN_VALUE)
 
     semantic_stack = []
     break_stacks = []
@@ -21,6 +20,7 @@ class CodeGenerator:
     memory_manager: MemoryManager = None
     fun_symbol: Symbol = None
     record_id_by_function_name = {}
+    is_called_by_function_name = {}
 
     def initialize_output_function():
         function_name = 'output'
@@ -64,6 +64,8 @@ class CodeGenerator:
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
         symbol.set_detail(varDetails)
+        if CodeGenerator.fun_symbol != None:
+            CodeGenerator.fun_symbol.detail.add_local(symbol)
 
     def array(token):
         symbol = CodeGenerator.semantic_stack.pop()
@@ -87,7 +89,6 @@ class CodeGenerator:
         scope = CodeGenerator.memory_manager.current_function_record_id
         address = CodeGenerator.program_block.get_current_address()
         functionDetails.add_to_scope(scope, address)
-        functionDetails.add_to_scope(scope, address)
         symbol.detail = functionDetails
         CodeGenerator.fun_symbol = symbol
         CodeGenerator.semantic_stack.append(symbol)
@@ -95,6 +96,7 @@ class CodeGenerator:
         record_id = CodeGenerator.memory_manager.current_function_record_id
         CodeGenerator.record_id_by_function_name.update(
             {symbol.name: record_id})
+        CodeGenerator.is_called_by_function_name.update({symbol.name: False})
 
     def __check_main(symbol):
         if symbol.name != 'main':
@@ -102,7 +104,7 @@ class CodeGenerator:
         main_address = CodeGenerator.program_block.get_current_address()
         rhs = DirectAddress(main_address)
         tac = ThreeAddressCode(Instruction.JP, rhs)
-        CodeGenerator.program_block.set(0, tac)
+        CodeGenerator.program_block.set(RegisterConstants.MAIN_JP, tac)
 
     def incrementParamCounter(token):
         likely_symbol = CodeGenerator.semantic_stack.pop()
@@ -189,15 +191,16 @@ class CodeGenerator:
             CodeGenerator.program_block.set(break_address, break_tac)
 
     def returnVoid(token):
-        tac = ThreeAddressCode(Instruction.JP, CodeGenerator.RETURN_ADDRESS)
-        CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.semantic_stack.append(ImmediateAddress(0))
+        CodeGenerator.returnNonVoid(None)
 
     def returnNonVoid(token):
         return_value = CodeGenerator.semantic_stack.pop()
         tac = ThreeAddressCode(
             Instruction.ASSIGN, return_value, CodeGenerator.RETURN_VALUE_ADDRESS)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        CodeGenerator.returnVoid(None)
+        tac = ThreeAddressCode(Instruction.JP, CodeGenerator.RETURN_ADDRESS)
+        CodeGenerator.program_block.set_current_and_increment(tac)
 
 
     def assign(token):
@@ -262,6 +265,7 @@ class CodeGenerator:
             CodeGenerator.fun_symbol = symbol
 
     def call(token):
+        CodeGenerator.__push_before_call(token)
         param_count = CodeGenerator.fun_symbol.detail.params_count
         arg_val_list = []
         for _ in range(0, param_count):
@@ -275,6 +279,8 @@ class CodeGenerator:
             Instruction.ASSIGN, CodeGenerator.RETURN_VALUE_ADDRESS, tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(tmp)
+        CodeGenerator.__pop_after_call(token)
+        CodeGenerator.is_called_by_function_name[CodeGenerator.fun_symbol.name] = True
 
     def __set_params(func: Symbol, values):
         for index, param in enumerate(func.detail.param):
@@ -301,3 +307,29 @@ class CodeGenerator:
         rhs = DirectAddress(func_address)
         tac = ThreeAddressCode(Instruction.JP, rhs, )
         CodeGenerator.program_block.set_current_and_increment(tac)
+
+    def __get_start_addr_and_size():
+        detail: FunctionDetails = CodeGenerator.fun_symbol.detail
+        record_id = CodeGenerator.record_id_by_function_name[CodeGenerator.fun_symbol.name]
+        first: VarDetails = None
+        if len(detail.param) > 0:
+            first = detail.param[0][1].detail
+        elif len(detail.local) > 0:
+            first = detail.local[0].detail
+        else:
+            return
+        start_addr = first.address_by_scope[record_id]
+        size = len(detail.param) + len(detail.local)
+        return start_addr, size
+
+    def __push_before_call(token):
+        if not CodeGenerator.is_called_by_function_name[CodeGenerator.fun_symbol.name]:
+            return
+        start_addr, size = CodeGenerator.__get_start_addr_and_size()
+        CodeGenerator.program_block.bulk_push_direct(start_addr, size)
+
+    def __pop_after_call(token):
+        if not CodeGenerator.is_called_by_function_name[CodeGenerator.fun_symbol.name]:
+            return
+        start_addr, size = CodeGenerator.__get_start_addr_and_size()
+        CodeGenerator.program_block.bulk_pop_direct(start_addr, size)

@@ -30,10 +30,14 @@ class FunctionDetails(SymbolDetails):
         self.return_type = return_type
         self.params_count = 0
         self.param = []
+        self.local = []
 
     def add_param(self, param_type, param_symbol):
         self.param.append((param_type, param_symbol))
         self.params_count += 1
+
+    def add_local(self, local_symbol):
+        self.local.append(local_symbol)
 
 
 class VarDetails(SymbolDetails):
