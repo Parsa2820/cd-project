@@ -4,13 +4,13 @@ Declaration -> Declaration-initial Declaration-prime
 Declaration-initial -> Type-specifier #pushIdDec ID
 Declaration-prime -> Fun-declaration-prime | Var-declaration-prime
 Var-declaration-prime -> #single ; | [ #array NUM ] ;
-Fun-declaration-prime -> #funDef ( Params #lastParam ) Compound-stmt
+Fun-declaration-prime -> #funDef ( Params #lastParam ) #funEnd Compound-stmt
 Type-specifier -> #pushIdTypeInt int | #pushIdTypeVoid void
 Params -> #pushIdTypeInt int #pushIdDec ID Param-prime Param-list | #noParam void
 Param-list -> #incrementParamCounter , Param Param-list | EPSILON
 Param -> Declaration-initial Param-prime
 Param-prime -> #paramArr [  ] | EPSILON
-Compound-stmt -> { Declaration-list Statement-list #funEnd }
+Compound-stmt -> { Declaration-list Statement-list }
 Statement-list -> Statement Statement-list | EPSILON
 Statement -> Expression-stmt | Compound-stmt | Selection-stmt | Iteration-stmt | Return-stmt
 Expression-stmt -> Expression ; | #breakLoop break ; | ;

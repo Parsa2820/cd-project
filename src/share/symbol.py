@@ -30,8 +30,8 @@ class FunctionDetails(SymbolDetails):
         self.params_count = 0
         self.param = []
 
-    def add_param(self, param_type, param_id):
-        self.param.append((param_type, param_id))
+    def add_param(self, param_type, param_symbol):
+        self.param.append((param_type, param_symbol))
         self.params_count += 1
 
 

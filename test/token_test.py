@@ -1,5 +1,5 @@
 import unittest
-from src.share import token
+from share import token
 
 
 class TokenTest(unittest.TestCase):
