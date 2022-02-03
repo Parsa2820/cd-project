@@ -4,21 +4,31 @@ from intercodegen.intercodeutils.regcon import RegisterConstants
 
 class ProgramBlock:
     def __init__(self):
-        self.program_block = [None, None]
-        self.last = RegisterConstants.PB_START
+        self.program_block = []
+        self.last = 0
         self.stack_pointer_indirect = IndirectAddress(
             RegisterConstants.STACK_POINTER)
         self.stack_pointer_direct = DirectAddress(
             RegisterConstants.STACK_POINTER)
         self.byte_size = ImmediateAddress(RegisterConstants.BYTE_SIZE)
         self.neg_byte_size = ImmediateAddress(-RegisterConstants.BYTE_SIZE)
-        self.__init_stack_pointer()
+        self.__initialize_pb()
+        self.last = RegisterConstants.PB_START
+        self.program_block.extend([None, None])
 
-    def __init_stack_pointer(self):
-        tac = ThreeAddressCode(Instruction.ASSIGN,
-                               ImmediateAddress(RegisterConstants.STACK_START),
-                               self.stack_pointer_direct,)
-        self.set(RegisterConstants.STACK_POINTER_INIT, tac)
+
+    def __initialize_pb(self):
+        rhs = ImmediateAddress(0)
+        for i in range(RegisterConstants.DATA_SIZE):
+            lhs = DirectAddress(i*4 + RegisterConstants.DATA_START)
+            tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
+            self.set_current_and_increment(tac)
+        lhs = DirectAddress(RegisterConstants.RETURN_ADDRESS)
+        tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
+        self.set_current_and_increment(tac)
+        lhs = DirectAddress(RegisterConstants.STACK_POINTER)
+        tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
+        self.set_current_and_increment(tac)
 
     def set(self, i, threeAddressCode: ThreeAddressCode):
         self.program_block[i] = threeAddressCode

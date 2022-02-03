@@ -8,7 +8,6 @@ from share.token import Token, TokenType
 
 
 class CodeGenerator:
-
     RETURN_ADDRESS = IndirectAddress(RegisterConstants.RETURN_ADDRESS)
     RETURN_VALUE_ADDRESS = DirectAddress(RegisterConstants.RETURN_VALUE)
 
@@ -162,7 +161,7 @@ class CodeGenerator:
         saved_address = CodeGenerator.semantic_stack.pop()
         predicate = CodeGenerator.semantic_stack.pop()
         current_address = CodeGenerator.program_block.get_current_address()
-        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address+1)
+        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address + 1)
         CodeGenerator.program_block.set(saved_address, tac)
 
     def writeJmpFalseSavedAddrSaveEmptyAddr(token):
@@ -201,7 +200,6 @@ class CodeGenerator:
         CodeGenerator.program_block.set_current_and_increment(tac)
         tac = ThreeAddressCode(Instruction.JP, CodeGenerator.RETURN_ADDRESS)
         CodeGenerator.program_block.set_current_and_increment(tac)
-
 
     def assign(token):
         rhs = CodeGenerator.semantic_stack.pop()
@@ -280,7 +278,6 @@ class CodeGenerator:
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(tmp)
         CodeGenerator.__pop_after_call(token)
-        CodeGenerator.is_called_by_function_name[CodeGenerator.fun_symbol.name] = True
 
     def __set_params(func: Symbol, values):
         for index, param in enumerate(func.detail.param):
@@ -296,11 +293,11 @@ class CodeGenerator:
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
 
-
     def __jp_to_function(func: Symbol):
-        ret_addr = CodeGenerator.program_block.get_current_address()+2
+        push_len = 2 * (len(func.detail.param) + len(func.detail.local) + 1)
+        ret_addr = CodeGenerator.program_block.get_current_address() + 2
         rhs = ImmediateAddress(ret_addr)
-        lhs = DirectAddress(1000)
+        lhs = DirectAddress(RegisterConstants.RETURN_ADDRESS)
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
         CodeGenerator.program_block.set_current_and_increment(tac)
         func_address = func.detail.address_by_scope[0]
@@ -323,13 +320,13 @@ class CodeGenerator:
         return start_addr, size
 
     def __push_before_call(token):
-        if not CodeGenerator.is_called_by_function_name[CodeGenerator.fun_symbol.name]:
-            return
         start_addr, size = CodeGenerator.__get_start_addr_and_size()
         CodeGenerator.program_block.bulk_push_direct(start_addr, size)
+        direct_return_address = DirectAddress(RegisterConstants.RETURN_ADDRESS)
+        CodeGenerator.program_block.push_to_runtime_stack(direct_return_address)
 
     def __pop_after_call(token):
-        if not CodeGenerator.is_called_by_function_name[CodeGenerator.fun_symbol.name]:
-            return
+        direct_return_address = DirectAddress(RegisterConstants.RETURN_ADDRESS)
+        CodeGenerator.program_block.pop_from_runtime_stack(direct_return_address)
         start_addr, size = CodeGenerator.__get_start_addr_and_size()
         CodeGenerator.program_block.bulk_pop_direct(start_addr, size)
