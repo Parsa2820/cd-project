@@ -8,8 +8,11 @@ from share.token import Token, TokenType
 
 class CodeGenerator:
 
-    RETURN_ADDRESS = IndirectAddress(1000)
-    RETURN_VALUE = DirectAddress(1004)
+    return_addresses = {}
+    RETURN_VALUE_ADDRESSES = {}
+    return_address = IndirectAddress(1000)
+    return_value_address = DirectAddress(1100)
+
     semantic_stack = []
     break_stacks = []
     size_by_type = {'int': 4, 'void': 0}
@@ -84,6 +87,7 @@ class CodeGenerator:
         scope = CodeGenerator.memory_manager.current_function_record_id
         address = CodeGenerator.program_block.get_current_address()
         functionDetails.add_to_scope(scope, address)
+        functionDetails.add_to_scope(scope, address)
         symbol.detail = functionDetails
         CodeGenerator.fun_symbol = symbol
         CodeGenerator.semantic_stack.append(symbol)
@@ -156,7 +160,7 @@ class CodeGenerator:
         saved_address = CodeGenerator.semantic_stack.pop()
         predicate = CodeGenerator.semantic_stack.pop()
         current_address = CodeGenerator.program_block.get_current_address()
-        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address)
+        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address+1)
         CodeGenerator.program_block.set(saved_address, tac)
 
     def writeJmpFalseSavedAddrSaveEmptyAddr(token):
@@ -189,11 +193,12 @@ class CodeGenerator:
         CodeGenerator.program_block.set_current_and_increment(tac)
 
     def returnNonVoid(token):
-        CodeGenerator.returnVoid(None)
         return_value = CodeGenerator.semantic_stack.pop()
         tac = ThreeAddressCode(
-            Instruction.ASSIGN, return_value, CodeGenerator.RETURN_VALUE)
+            Instruction.ASSIGN, return_value, CodeGenerator.RETURN_VALUE_ADDRESS)
         CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.returnVoid(None)
+
 
     def assign(token):
         rhs = CodeGenerator.semantic_stack.pop()
@@ -262,11 +267,12 @@ class CodeGenerator:
         for _ in range(0, param_count):
             arg_val = CodeGenerator.semantic_stack.pop()
             arg_val_list.insert(0, arg_val)
+        CodeGenerator.semantic_stack.pop()
         CodeGenerator.__set_params(CodeGenerator.fun_symbol, arg_val_list)
         CodeGenerator.__jp_to_function(CodeGenerator.fun_symbol)
         tmp = CodeGenerator.memory_manager.get_address()
         tac = ThreeAddressCode(
-            Instruction.ASSIGN, CodeGenerator.RETURN_VALUE, tmp)
+            Instruction.ASSIGN, CodeGenerator.RETURN_VALUE_ADDRESS, tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(tmp)
 
@@ -283,13 +289,7 @@ class CodeGenerator:
             lhs = DirectAddress(address_symbol)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
-            # CodeGenerator.add_address_to_symbol(
-            #    param[1], CodeGenerator.memory_manager.scope, cur_address)
 
-    # def add_address_to_symbol(symbol: Symbol, scope, address):
-    #     if symbol.detail is None:
-    #         symbol.set_detail(VarDetails('int'))
-    #     symbol.detail.add_to_scope(scope, address)
 
     def __jp_to_function(func: Symbol):
         ret_addr = CodeGenerator.program_block.get_current_address()+2
