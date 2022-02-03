@@ -34,6 +34,7 @@ def run_parser():
     pb = ProgramBlock()
     CodeGenerator.program_block = pb
     CodeGenerator.symbol_table = symbol_table
+    CodeGenerator.initialize_output_function()
     parser = FileCfgParser(scanner, base_path)
     tree, errors = parser.parse()
     parser_file_writer = ParserFileWriter(tree, base_path, errors)

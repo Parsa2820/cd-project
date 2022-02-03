@@ -1,8 +1,9 @@
-from symtable import Symbol, SymbolTable
-from share.symbol import VarDetails, FunctionDetails
+from share.symbol import Symbol, VarDetails, FunctionDetails
 from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.intercodeutils.tac import *
 from intercodegen.memman import MemoryManager
+from share.symboltable import SymbolTable
+from share.token import Token, TokenType
 
 
 class CodeGenerator:
@@ -59,8 +60,9 @@ class CodeGenerator:
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         functionDetails = FunctionDetails(type)
-        functionDetails.add_to_scope(
-            CodeGenerator.memory_manager.scope, CodeGenerator.memory_manager.get_address())
+        scope = CodeGenerator.memory_manager.scope
+        address = CodeGenerator.memory_manager.get_address()
+        functionDetails.add_to_scope(scope, address)
         symbol.detail = functionDetails
         CodeGenerator.semantic_stack.append(symbol)
 
@@ -230,16 +232,16 @@ class CodeGenerator:
     def define_params(func: Symbol, values):
         for index, param in enumerate(func.details.param):
             # TODO check param and input type
-            curr_address = CodeGenerator.memory_manager.get_address('int')
+            cur_address = CodeGenerator.memory_manager.get_address('int')
             if param[0] == 'int':
                 rhs = DirectAddress(values[index])
             else:
                 rhs = ImmediateAddress(values[index])
-            lhs = DirectAddress(curr_address)
+            lhs = DirectAddress(cur_address)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
             CodeGenerator.add_address_to_symbol(
-                param[1], CodeGenerator.memory_manager.scope, curr_address)
+                param[1], CodeGenerator.memory_manager.scope, cur_address)
 
     def add_address_to_symbol(symbol: Symbol, scope, adrress):
         if symbol.detail is None:
@@ -253,3 +255,19 @@ class CodeGenerator:
         CodeGenerator.program_block.set_current_and_increment(tac)
         ret_addr = CodeGenerator.program_block.get_current_address()
         CodeGenerator.memory_manager.add_return_address(ret_addr)
+
+    def initialize_output_function():
+        function_name = 'output'
+        input_name = '@x'
+        CodeGenerator.symbol_table.extend(function_name)
+        CodeGenerator.pushIdTypeVoid(None)
+        CodeGenerator.pushIdDec(Token(TokenType.ID, function_name))
+        CodeGenerator.funDef(None)
+        CodeGenerator.pushIdTypeInt(None)
+        CodeGenerator.pushIdDec(Token(TokenType.ID, input_name))
+        CodeGenerator.lastParam(None)
+        CodeGenerator.pushId(Token(TokenType.ID, input_name))
+        input = CodeGenerator.semantic_stack.pop()
+        tac = ThreeAddressCode(Instruction.PRINT, input)
+        CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.funEnd()
