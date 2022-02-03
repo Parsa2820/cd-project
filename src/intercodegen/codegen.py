@@ -206,6 +206,7 @@ class CodeGenerator:
         lhs = CodeGenerator.semantic_stack.pop()
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
         CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.semantic_stack.append(rhs)
 
     def arrayIndex(token):
         pass
