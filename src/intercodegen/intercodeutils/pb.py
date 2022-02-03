@@ -52,12 +52,12 @@ class ProgramBlock:
                                self.stack_pointer_indirect)
         self.set_current_and_increment(tac)
         tac = ThreeAddressCode(
-            Instruction.ADD, self.stack_pointer_direct, self.byte_size)
+            Instruction.ADD, self.stack_pointer_direct, self.byte_size, self.stack_pointer_direct)
         self.set_current_and_increment(tac)
 
     def pop_from_runtime_stack(self, addr):
         tac = ThreeAddressCode(
-            Instruction.ADD, self.stack_pointer_direct, self.neg_byte_size)
+            Instruction.ADD, self.stack_pointer_direct, self.neg_byte_size, self.stack_pointer_direct)
         self.set_current_and_increment(tac)
         tac = ThreeAddressCode(
             Instruction.ASSIGN, self.stack_pointer_indirect, addr)
