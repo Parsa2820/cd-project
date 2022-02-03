@@ -1,6 +1,6 @@
 import os
 from anytree.render import RenderTree
-from parser.parsetree.adopter import ParseTreeAdopter
+from _parser.parsetree.adopter import ParseTreeAdopter
 
 
 class ParserFileWriter:

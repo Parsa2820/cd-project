@@ -1,9 +1,9 @@
 import os
-from parser.cfgutils.converter import CfgToTransitionDiagramConverter
+from _parser.cfgutils.converter import CfgToTransitionDiagramConverter
 
 
 class FileConverter(CfgToTransitionDiagramConverter):
-    DIR_NAME = 'parser/cfg'
+    DIR_NAME = '_parser/cfg'
     CFG_FILE_NAME = 'cfg.txt'
     FIRSTS_FILE_NAME = 'firsts.txt'
     FOLLOWS_FILE_NAME = 'follows.txt'

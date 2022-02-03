@@ -1,6 +1,6 @@
-from parser.cfgutils.fileconverter import FileConverter
-from parser.parsetree.parsetree import ParseTree
-from parser.transitiondiagram import *
+from _parser.cfgutils.fileconverter import FileConverter
+from _parser.parsetree.parsetree import ParseTree
+from _parser.transitiondiagram import *
 
 
 class ParserBase:

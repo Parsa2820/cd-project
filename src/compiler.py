@@ -9,8 +9,8 @@ from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.memman import MemoryManager
 
 from intercodegen.filewriter import CodeGeneratorFileWriter
-from parser.filewriter import ParserFileWriter
-from parser.parser import *
+from _parser.filewriter import ParserFileWriter
+from _parser.parser import *
 from scanner.scanner import Scanner
 from share.symboltable import SymbolTable
 
