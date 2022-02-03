@@ -9,10 +9,10 @@ from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.memman import MemoryManager
 
 from intercodegen.filewriter import CodeGeneratorFileWriter
-from parser.filewriter import ParserFileWriter
-from parser.parser import *
-from scanner.scanner import Scanner
-from share.symboltable import SymbolTable
+from src.parser.filewriter import ParserFileWriter
+from src.parser.parser import *
+from src.scanner.scanner import Scanner
+from src.share.symboltable import SymbolTable
 
 
 INPUT_FILE_NAME = 'input.txt'

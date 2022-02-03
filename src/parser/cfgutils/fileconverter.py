@@ -1,5 +1,5 @@
 import os
-from parser.cfgutils.converter import CfgToTransitionDiagramConverter
+from src.parser.cfgutils.converter import CfgToTransitionDiagramConverter
 
 
 class FileConverter(CfgToTransitionDiagramConverter):

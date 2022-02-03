@@ -82,12 +82,16 @@ class CodeGenerator:
         CodeGenerator.semantic_stack.append('void')
 
     def incrementParamCounter(token):
-        likely_param_id = CodeGenerator.semantic_stack.pop()
-        if likely_param_id == 'void':
+        likely_symbol = CodeGenerator.semantic_stack.pop()
+        if likely_symbol == 'void':
             return
         param_type = CodeGenerator.semantic_stack.pop()
         function_symbol = CodeGenerator.semantic_stack.pop()
-        function_symbol.detail.add_param(param_type, likely_param_id)
+        function_symbol.detail.add_param(param_type, likely_symbol)
+        symbol = CodeGenerator.symbol_table.get_symbol(likely_symbol.name)
+        symbol.detail = VarDetails(param_type)
+        param_address = CodeGenerator.memory_manager.get_address()
+        symbol.detail.add_to_scope(CodeGenerator.memory_manager.scope, param_address)
         CodeGenerator.semantic_stack.append(function_symbol)
 
     def noParam(token):
@@ -143,15 +147,16 @@ class CodeGenerator:
         for break_address in CodeGenerator.break_stacks[-1]:
             CodeGenerator.program_block.set(break_address, break_tac)
 
-    def returnVoid(token, ):
+    def returnVoid(token):
         rhs = CodeGenerator.memory_manager.return_address_by_scope[-1]
         lhs = 0
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        tac = ThreeAddressCode(Instruction.JP, 0,)
+        zero = IndirectAddress(0)
+        tac = ThreeAddressCode(Instruction.JP, zero,)
         CodeGenerator.program_block.set_current_and_increment(tac)
 
-    def returnNonVoid(token, ):
+    def returnNonVoid(token):
         rhs = CodeGenerator.memory_manager.return_address_by_scope[-1]
         lhs = 0
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
@@ -216,11 +221,12 @@ class CodeGenerator:
             symbol_address = symbol.detail.address_by_scope[global_scope]
         # TODO id not found semantic error should be implemented
         CodeGenerator.semantic_stack.append(symbol_address)
-        CodeGenerator.fun_id = symbol
+        if isinstance(symbol.detail, FunctionDetails):
+            CodeGenerator.fun_id = symbol
 
     def call(token):
         CodeGenerator.memory_manager.add_scope()
-        param_count = CodeGenerator.fun_id.details.params_count()
+        param_count = CodeGenerator.fun_id.detail.params_count()
         arg_val_list = []
         for i in range(0, param_count):
             arg_val = CodeGenerator.semantic_stack.pop()
@@ -271,4 +277,4 @@ class CodeGenerator:
         input = CodeGenerator.semantic_stack.pop()
         tac = ThreeAddressCode(Instruction.PRINT, input)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        CodeGenerator.funEnd()
+        CodeGenerator.funEnd(None)

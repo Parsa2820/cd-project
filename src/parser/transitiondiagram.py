@@ -1,7 +1,7 @@
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
-from parser.auxiliaryset import First, Follow
-from parser.parsetree.parsetree import ParseTreeNode
+from src.parser.auxiliaryset import First, Follow
+from src.parser.parsetree.parsetree import ParseTreeNode
 
 
 class TransitionDiagram:
