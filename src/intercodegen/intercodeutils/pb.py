@@ -3,8 +3,8 @@ from intercodegen.intercodeutils.tac import ThreeAddressCode
 
 class ProgramBlock:
     def __init__(self):
-        self.program_block = []
-        self.last = 0
+        self.program_block = [None]
+        self.last = 1
 
     def set(self, i, threeAddressCode: ThreeAddressCode):
         self.program_block[i] = threeAddressCode

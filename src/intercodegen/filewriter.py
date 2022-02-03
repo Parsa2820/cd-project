@@ -20,6 +20,8 @@ class CodeGeneratorFileWriter:
             CodeGeneratorFileWriter.THREE_ADDRESS_CODE_FILE_NAME)
         with open(path, 'w', encoding='utf-8') as three_address_code_file:
             three_address_code_file.write(str(self.program_block))
+        with open('../docs/phase3/interpreter/output.txt', 'w', encoding='utf-8') as three_address_code_file:
+                three_address_code_file.write(str(self.program_block))
 
     def __write_semantic_errors(self):
         semantic_errors_lines = []
