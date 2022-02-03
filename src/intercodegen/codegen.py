@@ -80,11 +80,16 @@ class CodeGenerator:
         CodeGenerator.semantic_stack.append('void')
 
     def incrementParamCounter(token):
-        param_id = CodeGenerator.semantic_stack.pop()
+        likely_param_id = CodeGenerator.semantic_stack.pop()
+        if likely_param_id == 'void':
+            return
         param_type = CodeGenerator.semantic_stack.pop()
         function_symbol = CodeGenerator.semantic_stack.pop()
-        function_symbol.detail.add_param(param_type, param_id)
+        function_symbol.detail.add_param(param_type, likely_param_id)
         CodeGenerator.semantic_stack.append(function_symbol)
+
+    def noParam(token):
+        CodeGenerator.semantic_stack.append('void')
 
     def paramArr(token):
         symbol = CodeGenerator.semantic_stack.pop()
