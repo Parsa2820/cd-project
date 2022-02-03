@@ -260,6 +260,7 @@ class CodeGenerator:
         function_name = 'output'
         input_name = '@x'
         CodeGenerator.symbol_table.extend(function_name)
+        CodeGenerator.symbol_table.extend(input_name)
         CodeGenerator.pushIdTypeVoid(None)
         CodeGenerator.pushIdDec(Token(TokenType.ID, function_name))
         CodeGenerator.funDef(None)
