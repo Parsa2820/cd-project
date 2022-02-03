@@ -1,3 +1,4 @@
+from ast import Pass
 from intercodegen.intercodeutils.regcon import RegisterConstants
 from share.symbol import Symbol, VarDetails, FunctionDetails
 from intercodegen.intercodeutils.pb import ProgramBlock
@@ -138,6 +139,7 @@ class CodeGenerator:
 
     def paramArr(token):
         symbol = CodeGenerator.semantic_stack.pop()
+        CodeGenerator.semantic_stack.pop()
         CodeGenerator.semantic_stack.append('arr')
         CodeGenerator.semantic_stack.append(symbol)
 
@@ -300,7 +302,7 @@ class CodeGenerator:
             address_symbol = symbol.detail.address_by_scope[record_id]
             if param[0] == 'int':
                 rhs = DirectAddress(values[index])
-            else:
+            elif param[0] == 'arr':
                 rhs = ImmediateAddress(values[index])
             lhs = DirectAddress(address_symbol)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
