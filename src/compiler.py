@@ -42,6 +42,7 @@ def run_parser():
     file_writer = CodeGeneratorFileWriter(pb, base_path, [])
     file_writer.write()
     print(CodeGenerator.record_id_by_function_name)
+    print(CodeGenerator.symbol_table)
 
 
 if __name__ == '__main__':
