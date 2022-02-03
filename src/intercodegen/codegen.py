@@ -180,8 +180,8 @@ class CodeGenerator:
         CodeGenerator.break_stacks.append([])
 
     def jmpFalseSavedAddrLoop(token):
-        address = CodeGenerator.semantic_stack.pop()
         predicate = CodeGenerator.semantic_stack.pop()
+        address = CodeGenerator.semantic_stack.pop()
         tac = ThreeAddressCode(Instruction.JPF, predicate, address)
         CodeGenerator.program_block.set_current_and_increment(tac)
         current_address = CodeGenerator.program_block.get_current_address()
