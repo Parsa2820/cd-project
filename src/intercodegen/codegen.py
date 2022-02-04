@@ -170,7 +170,9 @@ class CodeGenerator:
         CodeGenerator.__check_main_return()
         CodeGenerator.memory_manager.remove_scope()
         CodeGenerator.fun_symbol.pop()
-        CodeGenerator.returnVoid(None)
+        tac = ThreeAddressCode(Instruction.JP, CodeGenerator.RETURN_ADDRESS)
+        CodeGenerator.program_block.set_current_and_increment(tac)
+        # CodeGenerator.returnVoid(token)
 
     def __check_main_return():
         if CodeGenerator.fun_symbol[-1].name != 'main':

@@ -25,12 +25,12 @@ class CodeGeneratorFileWriter:
             else:
                 three_address_code_file.write(str(self.program_block))
 
-        # path = self.__get_file_path('../docs/phase3/interpreter/output.txt')
-        # with open(path, 'w', encoding='utf-8') as three_address_code_file:
-        #     if len(self.semantic_errors) != 0:
-        #         three_address_code_file.write(CodeGeneratorFileWriter.NO_SEMANTIC_ERRORS_TAC)
-        #     else:
-        #         three_address_code_file.write(str(self.program_block))
+        path = self.__get_file_path('../docs/phase3/interpreter/output.txt')
+        with open(path, 'w', encoding='utf-8') as three_address_code_file:
+            if len(self.semantic_errors) != 0:
+                three_address_code_file.write(CodeGeneratorFileWriter.NO_SEMANTIC_ERRORS_TAC)
+            else:
+                three_address_code_file.write(str(self.program_block))
 
     def __write_semantic_errors(self):
         semantic_errors_lines = []

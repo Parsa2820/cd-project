@@ -29,6 +29,9 @@ class ProgramBlock:
         lhs = DirectAddress(RegisterConstants.STACK_POINTER)
         tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
         self.set_current_and_increment(tac)
+        lhs = DirectAddress(RegisterConstants.RETURN_VALUE)
+        tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
+        self.set_current_and_increment(tac)
 
     def set(self, i, threeAddressCode: ThreeAddressCode):
         self.program_block[i] = threeAddressCode

@@ -6,5 +6,5 @@ class RegisterConstants:
     STACK_START = 0
     DATA_START = 1000
     BYTE_SIZE = 4
-    PB_START = 2 + DATA_SIZE
+    PB_START = 3 + DATA_SIZE
     HEAP_START = 3000
