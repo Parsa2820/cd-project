@@ -312,12 +312,13 @@ class CodeGenerator:
     def pushId(token):
         symbol = CodeGenerator.symbol_table.get_symbol(token.value)
         global_scope = 0
-        if CodeGenerator.memory_manager.current_function_record_id in symbol.detail.address_by_scope:
+        if symbol.detail is not None and CodeGenerator.memory_manager.current_function_record_id in symbol.detail.address_by_scope:
             symbol_address = symbol.detail.address_by_scope[
                 CodeGenerator.memory_manager.current_function_record_id]
-        elif global_scope in symbol.detail.address_by_scope:
+        elif symbol.detail is not None and global_scope in symbol.detail.address_by_scope:
             symbol_address = symbol.detail.address_by_scope[global_scope]
         else:
+            CodeGenerator.semantic_stack.append(1)
             raise SemanticError(f"'{symbol.name}' is not defined")
         CodeGenerator.semantic_stack.append(symbol_address)
         symbol.detail.set_type(CodeGenerator.memory_manager.current_function_record_id)
@@ -335,7 +336,7 @@ class CodeGenerator:
             arg_val_list.insert(0, arg_val)
         likely_fun_address = CodeGenerator.semantic_stack.pop()
         function_id = CodeGenerator.fun_symbol[-1].name
-        if CodeGenerator.__get_symbol_by_address(likely_fun_address).name != function_id:
+        if CodeGenerator.__get_symbol_name_by_address(likely_fun_address) != function_id:
             raise SemanticError(f"Mismatch in numbers of arguments of '{function_id}'")
         CodeGenerator.__set_params(CodeGenerator.fun_symbol[-1], arg_val_list)
         CodeGenerator.__jp_to_function(CodeGenerator.fun_symbol[-1])
@@ -348,12 +349,12 @@ class CodeGenerator:
         CodeGenerator.__pop_after_call(token)
         CodeGenerator.fun_symbol.pop()
 
-    def __get_symbol_by_address(likely_fun_address):
+    def __get_symbol_name_by_address(likely_fun_address):
         for symbol in CodeGenerator.symbol_table.symbol_table.values():
             if symbol.detail is None:
                 continue
             if likely_fun_address in symbol.detail.address_by_scope.values():
-                return symbol
+                return symbol.name
 
     def __set_params(func: Symbol, values):
         for index, param in enumerate(func.detail.param):
