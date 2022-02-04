@@ -264,6 +264,7 @@ class CodeGenerator:
         instruction = CodeGenerator.semantic_stack.pop()
         first_operand = CodeGenerator.semantic_stack.pop()
         if not CodeGenerator.__match_type(first_operand, second_operand):
+            CodeGenerator.semantic_stack.append(1)
             raise SemanticError("Type mismatch in operands, Got array instead of int")
         result_tmp = CodeGenerator.memory_manager.get_address()
         tac = ThreeAddressCode(instruction, first_operand,
