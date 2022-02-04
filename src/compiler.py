@@ -36,8 +36,8 @@ def run_parser():
     CodeGenerator.symbol_table = symbol_table
     parser = FileCfgParser(scanner, base_path)
     tree, errors, semantic_errors = parser.parse()
-    parser_file_writer = ParserFileWriter(tree, base_path, errors)
-    parser_file_writer.write()
+    # parser_file_writer = ParserFileWriter(tree, base_path, errors)
+    # parser_file_writer.write()
     file_writer = CodeGeneratorFileWriter(pb, base_path, semantic_errors)
     file_writer.write()
     #print(CodeGenerator.record_id_by_function_name)
