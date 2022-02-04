@@ -14,7 +14,7 @@ class ProgramBlock:
         self.neg_byte_size = ImmediateAddress(-RegisterConstants.BYTE_SIZE)
         self.__initialize_pb()
         self.last = RegisterConstants.PB_START
-        self.program_block.extend([None])
+        #self.program_block.extend([])
 
 
     def __initialize_pb(self):
