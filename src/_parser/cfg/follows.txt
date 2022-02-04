@@ -1,5 +1,5 @@
 Program 	$
-Declaration-list 	break@ ;@ ID@ (@ NUM@ if@ return@ {@ repeat@ $
+Declaration-list 	break@ ;@ ID@ (@ NUM@ if@ return@ {@ repeat@ }@ $
 Declaration 	int@ void@ break@ ;@ ID@ (@ NUM@ if@ return@ {@ repeat@ $
 Declaration-initial 	[@ (@ ;@ ,@ )
 Declaration-prime 	int@ void@ break@ ;@ ID@ (@ NUM@ if@ return@ {@ repeat@ $

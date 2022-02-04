@@ -54,7 +54,10 @@ class CodeGenerator:
     def single(token):
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
-        varDetails = VarDetails(type)
+        if symbol.detail is None:
+            varDetails = VarDetails(type)
+        else:
+            varDetails = symbol.detail
         addr = 0
         if type == 'int':
             addr = CodeGenerator.memory_manager.get_address()
@@ -70,7 +73,10 @@ class CodeGenerator:
     def array(token):
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
-        varDetails = VarDetails(type)
+        if symbol.detail is None:
+            varDetails = VarDetails(type)
+        else:
+            varDetails = symbol.detail
         symbol.set_detail(varDetails)
         addr = 0
         if type == 'int':
