@@ -1,5 +1,5 @@
 class RegisterConstants:
-    DATA_SIZE = 50
+    DATA_SIZE = 200
     RETURN_ADDRESS = 1000
     RETURN_VALUE = 1004
     STACK_POINTER = 1008
