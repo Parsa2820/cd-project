@@ -1,3 +1,4 @@
+from intercodegen.semerror import SemanticError
 from scanner.scanner import Scanner
 from share.token import Token, TokenType
 from _parser.auxiliaryset import First, Follow
@@ -8,6 +9,7 @@ class TransitionDiagram:
     scanner: Scanner = None
     current_token: Token = None
     errors = []
+    semantic_errors = []
 
     def __init__(self, init_state, first: First, follow: Follow, name: str):
         self.init_state = init_state
@@ -37,7 +39,13 @@ class State:
 
     def transmit(self, token, parent):
         for transition in self.transitions:
-            if transition.match_first(token) and transition.match(token, parent):
+            match_result = False
+            try:
+                match_result = transition.match(token, parent)
+            except SemanticError as e:
+                e.line = transition.error_line_number
+                TransitionDiagram.semantic_errors.append(e)
+            if transition.match_first(token) and match_result:
                 return transition.destination_state
         transition = self.transitions[0]
         if self.__check_dollar(token):

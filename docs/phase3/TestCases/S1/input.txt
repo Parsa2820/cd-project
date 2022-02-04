@@ -16,5 +16,4 @@ void main(void){
 	output(i);
 	i=foo(a);
 	output(i);
-	output(a + i);
 }
