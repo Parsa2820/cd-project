@@ -30,6 +30,5 @@ void main(void)
 	} endif
 	i = i + 1;
     } until (arrsize < i + 1)
-
     printArray(arr, arrsize);
 }

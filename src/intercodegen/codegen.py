@@ -146,8 +146,16 @@ class CodeGenerator:
     def funEnd(token):
         if len(CodeGenerator.fun_symbol) == 0:
             return
+        CodeGenerator.__check_main_return()
         CodeGenerator.memory_manager.remove_scope()
         CodeGenerator.fun_symbol.pop()
+        CodeGenerator.returnVoid(None)
+
+    def __check_main_return():
+        if CodeGenerator.fun_symbol[-1].name != 'main':
+            return
+        tac = ThreeAddressCode(Instruction.JP, DirectAddress(2000))
+        CodeGenerator.program_block.set_current_and_increment(tac)
 
     def breakLoop(token):
         empty_address = CodeGenerator.program_block.get_current_address()
@@ -170,7 +178,7 @@ class CodeGenerator:
         saved_address = CodeGenerator.semantic_stack.pop()
         predicate = CodeGenerator.semantic_stack.pop()
         current_address = CodeGenerator.program_block.get_current_address()
-        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address+1)
+        tac = ThreeAddressCode(Instruction.JPF, predicate, current_address + 1)
         CodeGenerator.program_block.set(saved_address, tac)
         CodeGenerator.saveEmptyAddr(token)
 
