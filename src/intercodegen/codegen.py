@@ -80,7 +80,7 @@ class CodeGenerator:
         symbol.set_detail(varDetails)
         addr = 0
         if type == 'int':
-            addr = CodeGenerator.memory_manager.get_address(size=int(token.value))
+            addr = CodeGenerator.memory_manager.get_address()
         else:
             # TODO: this is error, array should not be void
             pass
@@ -88,6 +88,7 @@ class CodeGenerator:
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
         tac = ThreeAddressCode(Instruction.ASSIGN, ImmediateAddress(addr_heap), DirectAddress(addr))
+        CodeGenerator.program_block.set_current_and_increment(tac)
 
     def funDef(token):
         symbol = CodeGenerator.semantic_stack.pop()
@@ -327,7 +328,7 @@ class CodeGenerator:
             if param[0] == 'int':
                 rhs = DirectAddress(values[index])
             elif param[0] == 'arr':
-                rhs = IndirectAddress(values[index])
+                rhs = DirectAddress(values[index])
             lhs = DirectAddress(address_symbol)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
