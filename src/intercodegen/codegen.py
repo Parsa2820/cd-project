@@ -1,5 +1,6 @@
 from ast import Pass
 from intercodegen.intercodeutils.regcon import RegisterConstants
+from intercodegen.semerror import SemanticError
 from share.symbol import Symbol, VarDetails, FunctionDetails
 from intercodegen.intercodeutils.pb import ProgramBlock
 from intercodegen.intercodeutils.tac import *
@@ -22,6 +23,7 @@ class CodeGenerator:
     record_id_by_function_name = {}
     is_called_by_function_name = {}
     main_jp = None
+    type_by_address = {}
 
     def initialize_output_function():
         function_name = 'output'
@@ -64,8 +66,7 @@ class CodeGenerator:
         if type == 'int':
             addr = CodeGenerator.memory_manager.get_address()
         else:
-            # TODO: this is error, single should not be void
-            pass
+            raise SemanticError(f"Illegal type of void for '{symbol.name}'")
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
         symbol.set_detail(varDetails)
@@ -76,7 +77,7 @@ class CodeGenerator:
         symbol = CodeGenerator.semantic_stack.pop()
         type = CodeGenerator.semantic_stack.pop()
         if symbol.detail is None:
-            varDetails = VarDetails(type)
+            varDetails = VarDetails('array')
         else:
             varDetails = symbol.detail
         symbol.set_detail(varDetails)
@@ -84,8 +85,7 @@ class CodeGenerator:
         if type == 'int':
             addr = CodeGenerator.memory_manager.get_address()
         else:
-            # TODO: this is error, array should not be void
-            pass
+            raise SemanticError(f"Illegal type of void for '{symbol.name}'")
         addr_heap = CodeGenerator.memory_manager.get_heap_address(size=int(token.value))
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
@@ -157,7 +157,7 @@ class CodeGenerator:
     def paramArr(token):
         symbol = CodeGenerator.semantic_stack.pop()
         CodeGenerator.semantic_stack.pop()
-        CodeGenerator.semantic_stack.append('arr')
+        CodeGenerator.semantic_stack.append('array')
         CodeGenerator.semantic_stack.append(symbol)
 
     def funEnd(token):
@@ -177,6 +177,8 @@ class CodeGenerator:
     def breakLoop(token):
         empty_address = CodeGenerator.program_block.get_current_address()
         CodeGenerator.program_block.set_current_and_increment(None)
+        if len(CodeGenerator.break_stacks) == 0:
+            raise SemanticError("No 'repeat ... until' found for 'break'")
         CodeGenerator.break_stacks[-1].append(empty_address)
 
     def saveEmptyAddr(token):
@@ -260,6 +262,8 @@ class CodeGenerator:
         second_operand = CodeGenerator.semantic_stack.pop()
         instruction = CodeGenerator.semantic_stack.pop()
         first_operand = CodeGenerator.semantic_stack.pop()
+        if not CodeGenerator.__match_type(first_operand, second_operand):
+            raise SemanticError("Type mismatch in operands, Got array instead of int")
         result_tmp = CodeGenerator.memory_manager.get_address()
         tac = ThreeAddressCode(instruction, first_operand,
                                second_operand, result_tmp)
@@ -296,6 +300,7 @@ class CodeGenerator:
         tac = ThreeAddressCode(Instruction.ASSIGN, ImmediateAddress(token.value), DirectAddress(tmp))
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(tmp)
+        CodeGenerator.type_by_address.update({tmp: 'int'})
 
     def pushId(token):
         symbol = CodeGenerator.symbol_table.get_symbol(token.value)
@@ -303,10 +308,12 @@ class CodeGenerator:
         if CodeGenerator.memory_manager.current_function_record_id in symbol.detail.address_by_scope:
             symbol_address = symbol.detail.address_by_scope[
                 CodeGenerator.memory_manager.current_function_record_id]
-        else:
+        elif global_scope in symbol.detail.address_by_scope:
             symbol_address = symbol.detail.address_by_scope[global_scope]
-        # TODO id not found semantic error should be implemented
+        else:
+            raise SemanticError(f"'{symbol.name}' is not defined")
         CodeGenerator.semantic_stack.append(symbol_address)
+        CodeGenerator.type_by_address.update({symbol_address: symbol.detail.type})
         if isinstance(symbol.detail, FunctionDetails):
             CodeGenerator.fun_symbol.append(symbol)
             # CodeGenerator.semantic_stack.pop()
@@ -318,7 +325,10 @@ class CodeGenerator:
         for _ in range(0, param_count):
             arg_val = CodeGenerator.semantic_stack.pop()
             arg_val_list.insert(0, arg_val)
-        CodeGenerator.semantic_stack.pop()
+        likely_fun_symbol = CodeGenerator.semantic_stack.pop()
+        function_id = CodeGenerator.fun_symbol[-1].name
+        if likely_fun_symbol.name != function_id:
+            raise SemanticError(f"Mismatch in numbers of arguments of '{function_id}'")
         CodeGenerator.__set_params(CodeGenerator.fun_symbol[-1], arg_val_list)
         CodeGenerator.__jp_to_function(CodeGenerator.fun_symbol[-1])
         tmp = CodeGenerator.memory_manager.get_address()
@@ -331,14 +341,17 @@ class CodeGenerator:
 
     def __set_params(func: Symbol, values):
         for index, param in enumerate(func.detail.param):
-            # TODO check param and input type
             symbol = func.detail.param[index][1]
             record_id = CodeGenerator.record_id_by_function_name[func.name]
             address_symbol = symbol.detail.address_by_scope[record_id]
-            if param[0] == 'int':
-                rhs = DirectAddress(values[index])
-            elif param[0] == 'arr':
-                rhs = DirectAddress(values[index])
+            arg_type = CodeGenerator.type_by_address[values[index]]
+            if param[0] != arg_type:
+                raise SemanticError(f"Mismatch in type of argument {index+1} of '{func.name}'. Expected '{param[0]}' but got '{arg_type}' instead")
+            rhs = DirectAddress(values[index])
+            # if param[0] == 'int':
+            #     rhs = DirectAddress(values[index])
+            # elif param[0] == 'array':
+            #     rhs = DirectAddress(values[index])
             lhs = DirectAddress(address_symbol)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
