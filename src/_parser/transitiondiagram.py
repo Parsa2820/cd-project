@@ -39,14 +39,12 @@ class State:
 
     def transmit(self, token, parent):
         for transition in self.transitions:
-            match_result = False
             try:
-                match_result = transition.match(token, parent)
+                if transition.match_first(token) and transition.match(token, parent):
+                    return transition.destination_state
             except SemanticError as e:
                 e.line = transition.error_line_number
                 TransitionDiagram.semantic_errors.append(e)
-            if transition.match_first(token) and match_result:
-                return transition.destination_state
         transition = self.transitions[0]
         if self.__check_dollar(token):
             raise Exception('Unexpected EOF')

@@ -25,9 +25,9 @@ class SymbolDetails:
 
 
 class FunctionDetails(SymbolDetails):
-    def __init__(self, return_type):
+    def __init__(self, type):
         super().__init__()
-        self.return_type = return_type
+        self.type = type
         self.params_count = 0
         self.param = []
         self.local = []
