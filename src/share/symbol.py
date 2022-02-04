@@ -23,6 +23,9 @@ class SymbolDetails:
     def delete_from_scope(self, scope):
         self.address_by_scope.pop(scope)
 
+    def set_type(self, scope):
+        pass
+
 
 class FunctionDetails(SymbolDetails):
     def __init__(self, type):
@@ -44,3 +47,13 @@ class VarDetails(SymbolDetails):
     def __init__(self, type):
         super().__init__()
         self.type = type
+        self.type_by_scope = {}
+
+    def set_type(self, scope):
+        if scope in self.type_by_scope:
+            self.type = self.type_by_scope[scope]
+        elif 0 in self.type_by_scope:
+            self.type = self.type_by_scope[0]
+
+    def scope_to_type(self, scope, type):
+        self.type_by_scope.update({scope: type})

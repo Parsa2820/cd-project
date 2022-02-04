@@ -69,6 +69,7 @@ class CodeGenerator:
             raise SemanticError(f"Illegal type of void for '{symbol.name}'")
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
+        varDetails.scope_to_type(CodeGenerator.memory_manager.current_function_record_id, 'int')
         symbol.set_detail(varDetails)
         if len(CodeGenerator.fun_symbol) > 0:
             CodeGenerator.fun_symbol[-1].detail.add_local(symbol)
@@ -90,6 +91,7 @@ class CodeGenerator:
         addr_heap = CodeGenerator.memory_manager.get_heap_address(size=int(token.value))
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
+        varDetails.scope_to_type(CodeGenerator.memory_manager.current_function_record_id, 'array')
         tac = ThreeAddressCode(Instruction.ASSIGN, ImmediateAddress(addr_heap), DirectAddress(addr))
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.type_by_address.update({addr: type})
@@ -246,21 +248,16 @@ class CodeGenerator:
     def arrayIndex(token):
         expression_address = CodeGenerator.semantic_stack.pop()
         symbol_address = CodeGenerator.semantic_stack.pop()
-        #tmp = DirectAddress(CodeGenerator.memory_manager.get_address())
-        #tac = ThreeAddressCode(Instruction.ASSIGN, DirectAddress(symbol_address), tmp)
-        #CodeGenerator.program_block.set_current_and_increment(tac)
         op1 = ImmediateAddress(RegisterConstants.BYTE_SIZE)
         op2 = DirectAddress(expression_address)
         op3 = DirectAddress(CodeGenerator.memory_manager.get_address())
         tac = ThreeAddressCode(Instruction.MULT, op1, op2, op3)
-        #CodeGenerator.program_block.set_current_and_increment(tac)
-        #tac = ThreeAddressCode(Instruction.PRINT, DirectAddress(symbol_address) )
         CodeGenerator.program_block.set_current_and_increment(tac)
         tac = ThreeAddressCode(Instruction.ADD, DirectAddress(symbol_address), op3, op3)
         CodeGenerator.program_block.set_current_and_increment(tac)
         indirect_op3 = IndirectAddress(op3);
         CodeGenerator.semantic_stack.append(indirect_op3)
-        CodeGenerator.type_by_address.update({indirect_op3: 'array'})
+        CodeGenerator.type_by_address.update({indirect_op3: 'int'})
 
     def apply():
         second_operand = CodeGenerator.semantic_stack.pop()
@@ -276,6 +273,8 @@ class CodeGenerator:
         CodeGenerator.type_by_address.update({result_tmp: 'int'})
 
     def __match_type(first_operand, second_operand):
+        if first_operand not in CodeGenerator.type_by_address or second_operand not in CodeGenerator.type_by_address:
+            return True
         return CodeGenerator.type_by_address[first_operand] == CodeGenerator.type_by_address[second_operand]
 
     def compare(token):
@@ -321,6 +320,7 @@ class CodeGenerator:
         else:
             raise SemanticError(f"'{symbol.name}' is not defined")
         CodeGenerator.semantic_stack.append(symbol_address)
+        symbol.detail.set_type(CodeGenerator.memory_manager.current_function_record_id)
         CodeGenerator.type_by_address.update({symbol_address: symbol.detail.type})
         if isinstance(symbol.detail, FunctionDetails):
             CodeGenerator.fun_symbol.append(symbol)
@@ -373,7 +373,6 @@ class CodeGenerator:
             CodeGenerator.program_block.set_current_and_increment(tac)
 
     def __jp_to_function(func: Symbol):
-        push_len = 2 * (len(func.detail.param) + len(func.detail.local) + 1)
         ret_addr = CodeGenerator.program_block.get_current_address() + 2
         rhs = ImmediateAddress(ret_addr)
         lhs = DirectAddress(RegisterConstants.RETURN_ADDRESS)
@@ -387,7 +386,6 @@ class CodeGenerator:
     def __get_start_addr_and_size():
         detail: FunctionDetails = CodeGenerator.fun_symbol[-1].detail
         record_id = CodeGenerator.record_id_by_function_name[CodeGenerator.fun_symbol[-1].name]
-        first: VarDetails = None
         if len(detail.param) > 0:
             first = detail.param[0][1].detail
         elif len(detail.local) > 0:
