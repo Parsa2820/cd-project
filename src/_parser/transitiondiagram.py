@@ -44,6 +44,8 @@ class State:
                     return transition.destination_state
             except SemanticError as e:
                 e.line = transition.error_line_number
+                if e.is_illegal_type:
+                    e.line -= 1
                 TransitionDiagram.semantic_errors.append(e)
         transition = self.transitions[0]
         if self.__check_dollar(token):

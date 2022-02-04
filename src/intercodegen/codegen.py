@@ -66,7 +66,7 @@ class CodeGenerator:
         if type == 'int':
             addr = CodeGenerator.memory_manager.get_address()
         else:
-            raise SemanticError(f"Illegal type of void for '{symbol.name}'")
+            raise SemanticError(f"Illegal type of void for '{symbol.name}'", is_illegal_type=True)
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
         varDetails.scope_to_type(CodeGenerator.memory_manager.current_function_record_id, 'int')
@@ -87,7 +87,7 @@ class CodeGenerator:
         if type == 'int':
             addr = CodeGenerator.memory_manager.get_address()
         else:
-            raise SemanticError(f"Illegal type of void for '{symbol.name}'")
+            raise SemanticError(f"Illegal type of void for '{symbol.name}'", is_illegal_type=True)
         addr_heap = CodeGenerator.memory_manager.get_heap_address(size=int(token.value))
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
