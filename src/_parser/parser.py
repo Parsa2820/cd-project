@@ -21,7 +21,7 @@ class ParserBase:
                 pass
             else:
                 raise e
-        return parse_tree, TransitionDiagram.errors
+        return parse_tree, TransitionDiagram.errors, TransitionDiagram.semantic_errors
 
 
 class FileCfgParser(ParserBase):
