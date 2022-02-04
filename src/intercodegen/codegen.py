@@ -303,7 +303,7 @@ class CodeGenerator:
             if param[0] == 'int':
                 rhs = DirectAddress(values[index])
             elif param[0] == 'arr':
-                rhs = ImmediateAddress(values[index])
+                rhs = DirectAddress(values[index])
             lhs = DirectAddress(address_symbol)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)
