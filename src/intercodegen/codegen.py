@@ -84,8 +84,10 @@ class CodeGenerator:
         else:
             # TODO: this is error, array should not be void
             pass
+        addr_heap = CodeGenerator.memory_manager.get_heap_address(size=int(token.value))
         varDetails.add_to_scope(
             CodeGenerator.memory_manager.current_function_record_id, addr)
+        tac = ThreeAddressCode(Instruction.ASSIGN, ImmediateAddress(addr_heap), DirectAddress(addr))
 
     def funDef(token):
         symbol = CodeGenerator.semantic_stack.pop()
@@ -231,13 +233,15 @@ class CodeGenerator:
     def arrayIndex(token):
         expression_address = CodeGenerator.semantic_stack.pop()
         symbol_address = CodeGenerator.semantic_stack.pop()
+        tmp = DirectAddress(CodeGenerator.memory_manager.get_address())
+        tac = ThreeAddressCode(Instruction.ASSIGN, DirectAddress(symbol_address), tmp)
+        CodeGenerator.program_block.set_current_and_increment(tac)
         op1 = ImmediateAddress(RegisterConstants.BYTE_SIZE)
         op2 = DirectAddress(expression_address)
         op3 = DirectAddress(CodeGenerator.memory_manager.get_address())
         tac = ThreeAddressCode(Instruction.MULT, op1, op2, op3)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        op1 = ImmediateAddress(symbol_address)
-        tac = ThreeAddressCode(Instruction.ADD, op1, op3, op3)
+        tac = ThreeAddressCode(Instruction.ADD, tmp, op3, op3)
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(IndirectAddress(op3))
 
@@ -323,7 +327,7 @@ class CodeGenerator:
             if param[0] == 'int':
                 rhs = DirectAddress(values[index])
             elif param[0] == 'arr':
-                rhs = DirectAddress(values[index])
+                rhs = IndirectAddress(values[index])
             lhs = DirectAddress(address_symbol)
             tac = ThreeAddressCode(Instruction.ASSIGN, rhs, lhs)
             CodeGenerator.program_block.set_current_and_increment(tac)

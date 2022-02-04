@@ -8,3 +8,4 @@ class RegisterConstants:
     BYTE_SIZE = 4
     MAIN_JP = 2 + DATA_SIZE
     PB_START = 3 + DATA_SIZE
+    HEAP_START = 3000
