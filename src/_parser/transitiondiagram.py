@@ -47,6 +47,7 @@ class State:
                 if e.is_illegal_type:
                     e.line -= 1
                 TransitionDiagram.semantic_errors.append(e)
+                return transition.destination_state
         transition = self.transitions[0]
         if self.__check_dollar(token):
             raise Exception('Unexpected EOF')

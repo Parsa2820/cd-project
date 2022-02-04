@@ -321,7 +321,7 @@ class CodeGenerator:
         elif symbol.detail is not None and global_scope in symbol.detail.address_by_scope:
             symbol_address = symbol.detail.address_by_scope[global_scope]
         else:
-            CodeGenerator.semantic_stack.append(1)
+            CodeGenerator.semantic_stack.append(CodeGenerator.__get_int_address(token))
             raise SemanticError(f"'{symbol.name}' is not defined")
         CodeGenerator.semantic_stack.append(symbol_address)
         symbol.detail.set_type(CodeGenerator.memory_manager.current_function_record_id)
@@ -329,6 +329,12 @@ class CodeGenerator:
         if isinstance(symbol.detail, FunctionDetails):
             CodeGenerator.fun_symbol.append(symbol)
             # CodeGenerator.semantic_stack.pop()
+
+    def __get_int_address(token):
+        for i in CodeGenerator.type_by_address.keys():
+            if CodeGenerator.type_by_address[i] == 'int':
+                return i
+        return 1
 
     def call(token):
         CodeGenerator.__push_before_call(token)
@@ -340,6 +346,7 @@ class CodeGenerator:
         likely_fun_address = CodeGenerator.semantic_stack.pop()
         function_id = CodeGenerator.fun_symbol[-1].name
         if CodeGenerator.__get_symbol_name_by_address(likely_fun_address) != function_id:
+            CodeGenerator.semantic_stack.append(1)
             raise SemanticError(f"Mismatch in numbers of arguments of '{function_id}'")
         CodeGenerator.__set_params(CodeGenerator.fun_symbol[-1], arg_val_list)
         CodeGenerator.__jp_to_function(CodeGenerator.fun_symbol[-1])
@@ -366,6 +373,7 @@ class CodeGenerator:
             address_symbol = symbol.detail.address_by_scope[record_id]
             arg_type = CodeGenerator.type_by_address[values[index]]
             if param[0] != arg_type:
+                CodeGenerator.semantic_stack.append(1)
                 raise SemanticError(f"Mismatch in type of argument {index+1} of '{func.name}'. Expected '{param[0]}' but got '{arg_type}' instead")
             rhs = DirectAddress(values[index])
             # if param[0] == 'int':
