@@ -72,6 +72,7 @@ class CodeGenerator:
         symbol.set_detail(varDetails)
         if len(CodeGenerator.fun_symbol) > 0:
             CodeGenerator.fun_symbol[-1].detail.add_local(symbol)
+        CodeGenerator.type_by_address.update({addr: type})
 
     def array(token):
         symbol = CodeGenerator.semantic_stack.pop()
@@ -91,6 +92,7 @@ class CodeGenerator:
             CodeGenerator.memory_manager.current_function_record_id, addr)
         tac = ThreeAddressCode(Instruction.ASSIGN, ImmediateAddress(addr_heap), DirectAddress(addr))
         CodeGenerator.program_block.set_current_and_increment(tac)
+        CodeGenerator.type_by_address.update({addr: type})
 
     def funDef(token):
         if CodeGenerator.main_jp is None:
@@ -256,7 +258,9 @@ class CodeGenerator:
         CodeGenerator.program_block.set_current_and_increment(tac)
         tac = ThreeAddressCode(Instruction.ADD, DirectAddress(symbol_address), op3, op3)
         CodeGenerator.program_block.set_current_and_increment(tac)
-        CodeGenerator.semantic_stack.append(IndirectAddress(op3))
+        indirect_op3 = IndirectAddress(op3);
+        CodeGenerator.semantic_stack.append(indirect_op3)
+        CodeGenerator.type_by_address.update({indirect_op3: 'array'})
 
     def apply():
         second_operand = CodeGenerator.semantic_stack.pop()
@@ -269,6 +273,10 @@ class CodeGenerator:
                                second_operand, result_tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(result_tmp)
+        CodeGenerator.type_by_address.update({result_tmp: 'int'})
+
+    def __match_type(first_operand, second_operand):
+        return CodeGenerator.type_by_address[first_operand] == CodeGenerator.type_by_address[second_operand]
 
     def compare(token):
         CodeGenerator.apply()
@@ -325,9 +333,9 @@ class CodeGenerator:
         for _ in range(0, param_count):
             arg_val = CodeGenerator.semantic_stack.pop()
             arg_val_list.insert(0, arg_val)
-        likely_fun_symbol = CodeGenerator.semantic_stack.pop()
+        likely_fun_address = CodeGenerator.semantic_stack.pop()
         function_id = CodeGenerator.fun_symbol[-1].name
-        if likely_fun_symbol.name != function_id:
+        if CodeGenerator.__get_symbol_by_address(likely_fun_address).name != function_id:
             raise SemanticError(f"Mismatch in numbers of arguments of '{function_id}'")
         CodeGenerator.__set_params(CodeGenerator.fun_symbol[-1], arg_val_list)
         CodeGenerator.__jp_to_function(CodeGenerator.fun_symbol[-1])
@@ -336,8 +344,16 @@ class CodeGenerator:
             Instruction.ASSIGN, CodeGenerator.RETURN_VALUE_ADDRESS, tmp)
         CodeGenerator.program_block.set_current_and_increment(tac)
         CodeGenerator.semantic_stack.append(tmp)
+        CodeGenerator.type_by_address.update({tmp: 'int'})
         CodeGenerator.__pop_after_call(token)
         CodeGenerator.fun_symbol.pop()
+
+    def __get_symbol_by_address(likely_fun_address):
+        for symbol in CodeGenerator.symbol_table.symbol_table.values():
+            if symbol.detail is None:
+                continue
+            if likely_fun_address in symbol.detail.address_by_scope.values():
+                return symbol
 
     def __set_params(func: Symbol, values):
         for index, param in enumerate(func.detail.param):

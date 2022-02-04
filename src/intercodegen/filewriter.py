@@ -20,10 +20,14 @@ class CodeGeneratorFileWriter:
         path = self.__get_file_path(
             CodeGeneratorFileWriter.THREE_ADDRESS_CODE_FILE_NAME)
         with open(path, 'w', encoding='utf-8') as three_address_code_file:
-            three_address_code_file.write(str(self.program_block))
+            if len(self.semantic_errors) != 0:
+                three_address_code_file.write(CodeGeneratorFileWriter.NO_SEMANTIC_ERRORS_TAC)
+            else:
+                three_address_code_file.write(str(self.program_block))
+
         path = self.__get_file_path('../docs/phase3/interpreter/output.txt')
         with open(path, 'w', encoding='utf-8') as three_address_code_file:
-            if len(self.semantic_errors) == 0:
+            if len(self.semantic_errors) != 0:
                 three_address_code_file.write(CodeGeneratorFileWriter.NO_SEMANTIC_ERRORS_TAC)
             else:
                 three_address_code_file.write(str(self.program_block))
